@@ -1,0 +1,33 @@
+GET http://localhost:5076/games
+
+###
+GET http://localhost:5076/games/befa1b8f-5189-4622-ab1a-20841222b5a9
+
+### 
+POST http://localhost:5076/games
+Content-Type: application/json
+
+{
+  "name": "Miecraft",
+  "genreId": "09060d9b-42b2-4b03-bb25-723981d22923",
+  "price": 19.99,
+  "description": "this is a test",
+  "releaseDate": "2011-11-18"
+}
+
+### 
+PUT http://localhost:5076/games/a4d548c3-088f-4582-853e-db6c991797f1
+Content-Type: application/json
+
+{
+  "name": "Micky Mouse",
+  "genre": "Kids and Family",
+  "price": 19.99,
+  "releaseDate": "2011-11-18"
+}
+
+###
+DELETE http://localhost:5076/games/befa1b8f-5189-4622-ab1a-20841222b5a9
+
+###
+GET http://localhost:5076/genres
