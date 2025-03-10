@@ -1,6 +1,6 @@
 # GameStore
 
-This repository hosts a full-stack video game store application built with .NET for browsing and purchasing video games.
+GameStore is a full-stack video game store application built with .NET for browsing and purchasing video games.
 
 ## Documentation
 
