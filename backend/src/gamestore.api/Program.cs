@@ -1,4 +1,5 @@
 using gamestore.api.Data;
+using gamestore.api.Features.Baskets;
 using gamestore.api.Features.Games;
 using gamestore.api.Features.Genres;
 using gamestore.api.Shared.ErrorHandling;
@@ -32,6 +33,7 @@ app.UseStaticFiles();
 
 app.MapGames();
 app.MapGenres();
+app.MapBaskets();
 
 app.UseHttpLogging();
 app.UseMiddleware<RequestTimingMiddleware>();
