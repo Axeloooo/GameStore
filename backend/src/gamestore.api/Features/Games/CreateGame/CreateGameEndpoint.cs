@@ -3,6 +3,7 @@ using System.Security.Claims;
 using gamestore.api.Data;
 using gamestore.api.Features.Games.Constants;
 using gamestore.api.Models;
+using gamestore.api.Shared.Authorization;
 using gamestore.api.Shared.FileUpload;
 using Microsoft.AspNetCore.Mvc;
 
@@ -86,6 +87,7 @@ public static class CreateGameEndpoint
                 }
             )
             .WithParameterValidation()
-            .DisableAntiforgery();
+            .DisableAntiforgery()
+            .RequireAuthorization(Policies.AdminAccess);
     }
 }
