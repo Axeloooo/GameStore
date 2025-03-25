@@ -2,6 +2,7 @@ using gamestore.api.Data;
 using gamestore.api.Features.Baskets;
 using gamestore.api.Features.Games;
 using gamestore.api.Features.Genres;
+using gamestore.api.Shared.Authorization;
 using gamestore.api.Shared.ErrorHandling;
 using gamestore.api.Shared.FileUpload;
 using gamestore.api.Shared.Timing;
@@ -25,11 +26,16 @@ builder
     .AddJwtBearer(options =>
     {
         options.MapInboundClaims = false;
+        options.TokenValidationParameters.RoleClaimType = "role";
     });
+
+builder.AddGameStoreAuthorization();
 
 var app = builder.Build();
 
 app.UseStaticFiles();
+
+app.UseAuthorization();
 
 app.MapGames();
 app.MapGenres();

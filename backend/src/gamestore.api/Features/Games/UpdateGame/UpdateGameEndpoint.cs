@@ -3,6 +3,7 @@ using System.Security.Claims;
 using gamestore.api.Data;
 using gamestore.api.Features.Games.Constants;
 using gamestore.api.Models;
+using gamestore.api.Shared.Authorization;
 using gamestore.api.Shared.FileUpload;
 
 namespace gamestore.api.Features.Games.UpdateGame;
@@ -63,6 +64,7 @@ public static class UpdateGameEndpoint
                 }
             )
             .WithParameterValidation()
-            .DisableAntiforgery();
+            .DisableAntiforgery()
+            .RequireAuthorization(Policies.AdminAccess);
     }
 }
