@@ -1,11 +1,14 @@
 using gamestore.api.Data;
 using gamestore.api.Features.Baskets;
+using gamestore.api.Features.Baskets.Authorization;
 using gamestore.api.Features.Games;
 using gamestore.api.Features.Genres;
 using gamestore.api.Shared.Authorization;
 using gamestore.api.Shared.ErrorHandling;
 using gamestore.api.Shared.FileUpload;
 using gamestore.api.Shared.Timing;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -21,15 +24,9 @@ builder.Services.AddEndpointsApiExplorer();
 
 builder.Services.AddHttpContextAccessor().AddSingleton<FileUploader>();
 
-builder
-    .Services.AddAuthentication()
-    .AddJwtBearer(options =>
-    {
-        options.MapInboundClaims = false;
-        options.TokenValidationParameters.RoleClaimType = "role";
-    });
-
+builder.AddGameStoreAuthentication();
 builder.AddGameStoreAuthorization();
+builder.Services.AddSingleton<IAuthorizationHandler, BasketAuthorizationHandler>();
 
 var app = builder.Build();
 
