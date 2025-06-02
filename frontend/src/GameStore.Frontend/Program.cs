@@ -1,21 +1,30 @@
+using GameStore.Frontend.Authorization;
 using GameStore.Frontend.Clients;
 using GameStore.Frontend.Components;
+using GameStore.Frontend.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// builder.AddServiceDefaults();
-
 // Add services to the container.
 builder.Services.AddRazorComponents();
+
+builder.AddGameStoreOpenIdConnect();
 
 var backendApiUrl = builder.Configuration["BackendApiUrl"] ??
     throw new Exception("BackendApiUrl is not set");
 
 builder.Services.AddHttpClient<GamesClient>(
-    client => client.BaseAddress = new Uri(backendApiUrl));
+    client => client.BaseAddress = new Uri(backendApiUrl))
+    .AddHttpMessageHandler<AuthorizationHandler>();
 
 builder.Services.AddHttpClient<GenresClient>(
     client => client.BaseAddress = new Uri(backendApiUrl));
+
+builder.Services.AddHttpClient<IBasketClient, ServerBasketClient>(
+    client => client.BaseAddress = new Uri(backendApiUrl))
+    .AddHttpMessageHandler<AuthorizationHandler>();
+
+builder.Services.AddScoped<BasketState>();
 
 var app = builder.Build();
 
@@ -36,6 +45,6 @@ app.UseAntiforgery();
 
 app.MapRazorComponents<App>();
 
-// app.MapDefaultEndpoints();
+app.MapLoginAndLogout();
 
 app.Run();

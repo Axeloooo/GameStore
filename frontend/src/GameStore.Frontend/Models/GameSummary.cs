@@ -12,5 +12,7 @@ public class GameSummary
 
     public DateOnly ReleaseDate { get; set; }
 
+    public required string LastUpdatedBy { get; set; }
+
     public required string ImageUri { get; set; }
 }

@@ -1,7 +1,9 @@
 ﻿@page "/catalog"
+@using GameStore.Frontend.Authorization
 @inject GamesClient Client
 @inject NavigationManager NavigationManager
 @attribute [StreamRendering]
+@attribute [Authorize(Roles=@Roles.Admin)]
 
 <PageTitle>Game Catalog</PageTitle>
 
@@ -17,7 +19,9 @@
 
 <div class="row mt-2">
     <div class="col">
-        <a class="btn btn-primary" role="button" href="/catalog/editgame">New Game</a>
+        <AuthorizeView Roles="@Roles.Admin">
+            <a class="btn btn-primary" role="button" href="/catalog/editgame">New Game</a>
+        </AuthorizeView>
     </div>
     <div class="col-sm-4">
         <form id="searchGamesForm" method="post" class="d-flex" role="search" @formname="searchGames" data-permanent>
@@ -42,6 +46,7 @@ else
             <th>Genre</th>
             <th class="text-end">Price</th>
             <th>Release Date</th>
+            <th>Last Updated</th>
             <th></th>
         </thead>
         <tbody>
@@ -55,16 +60,19 @@ else
                     <td>@game.Genre</td>
                     <td class="text-end">$@game.Price</td>
                     <td>@game.ReleaseDate</td>
+                    <td>@game.LastUpdatedBy</td>
                     <td>
-                        <div class="d-flex">
-                            <a class="btn btn-primary me-2" role="button" href="@GameUrl(game.Id)">
-                                <i class="bi bi-pencil"></i>
-                            </a>
-                            <button class="btn btn-danger" data-bs-toggle="modal" data-bs-target="@GetDeleteModalId(game)">
-                                <i class="bi bi-x-lg"></i>
-                            </button>
-                        </div>
-                        <DeleteGame Game="@game" />
+                        <AuthorizeView Roles="@Roles.Admin">
+                            <div class="d-flex">
+                                <a class="btn btn-primary me-2" role="button" href="@GameUrl(game.Id)">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                                <button class="btn btn-danger" data-bs-toggle="modal" data-bs-target="@GetDeleteModalId(game)">
+                                    <i class="bi bi-x-lg"></i>
+                                </button>
+                            </div>
+                            <DeleteGame Game="@game" />
+                        </AuthorizeView>
                     </td>
                 </tr>
             }
@@ -142,10 +150,9 @@ else
 
         if (result.Succeeded)
         {
-            NavigationManager.Refresh();
+            NavigationManager.Refresh();            
         }
-        else
-        {
+        else{
             errorList = result.Errors;
         }
     }

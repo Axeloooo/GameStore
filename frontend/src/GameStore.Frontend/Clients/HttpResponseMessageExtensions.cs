@@ -40,14 +40,19 @@ public static class HttpResponseMessageExtensions
             errors.Add(problemDetails.Title);
         }
 
-        if (problemDetails?.Extensions.TryGetValue("errors", out var value) == true && value is JsonElement errorsElement)
+        if (
+            problemDetails?.Extensions.TryGetValue("errors", out var value) == true
+            && value is JsonElement errorsElement
+        )
         {
             foreach (var errorEntry in errorsElement.EnumerateObject())
             {
                 errors.AddRange(
-                    errorEntry.Value.EnumerateArray().Select(
-                        e => e.GetString() ?? string.Empty)
-                    .Where(e => !string.IsNullOrEmpty(e)));
+                    errorEntry
+                        .Value.EnumerateArray()
+                        .Select(e => e.GetString() ?? string.Empty)
+                        .Where(e => !string.IsNullOrEmpty(e))
+                );
             }
         }
 

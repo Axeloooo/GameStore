@@ -1,6 +1,7 @@
 ﻿@page "/catalog/editgame"
 @page "/catalog/editgame/{id:guid}"
 @using GameStore.Frontend.Models
+@attribute [Authorize]
 
 @inject NavigationManager NavigationManager
 @inject GamesClient GamesClient

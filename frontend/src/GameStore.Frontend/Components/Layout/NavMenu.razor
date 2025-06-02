@@ -1,4 +1,5 @@
-﻿<nav class="navbar navbar-expand-lg bg-body-tertiary" data-bs-theme="dark">
+﻿@using GameStore.Frontend.Authorization
+<nav class="navbar navbar-expand-lg bg-body-tertiary" data-bs-theme="dark">
   <div class="container">
     <a class="navbar-brand mb-0 h1" href="#">Game Store</a>
 
@@ -9,10 +10,18 @@
     </button>
     <div class="collapse navbar-collapse" id="navbarSupportedContent">
       <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-        <li class="nav-item">
-          <NavLink class="nav-link" href="/catalog" Match="NavLinkMatch.Prefix">Catalog</NavLink>
-        </li>
+        <AuthorizeView Roles="@Roles.Admin">
+          <li class="nav-item">
+            <NavLink class="nav-link" href="/catalog" Match="NavLinkMatch.Prefix">Catalog</NavLink>
+          </li>
+        </AuthorizeView>
       </ul>
+      <div class="d-flex align-items-center">
+        <div class="me-3 d-flex">
+          <LoginDisplay />
+        </div>
+        <CartDisplay />
+      </div>
     </div>
   </div>
 </nav>
