@@ -28,7 +28,22 @@ builder.AddGameStoreAuthentication();
 builder.AddGameStoreAuthorization();
 builder.Services.AddSingleton<IAuthorizationHandler, BasketAuthorizationHandler>();
 
+builder.Services.AddCors(options =>
+{
+    options.AddDefaultPolicy(policy =>
+    {
+        var allowedOrigin = "http://localhost:5173";
+        policy
+            .WithOrigins(allowedOrigin)
+            .WithHeaders(HeaderNames.Authorization, HeaderNames.ContentType)
+            .AllowAnyMethod();
+    });
+});
+
 var app = builder.Build();
+
+app.UseCors();
+app.UseAuthorization();
 
 app.UseStaticFiles();
 
