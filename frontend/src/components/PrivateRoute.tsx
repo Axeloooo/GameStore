@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from 'react-oidc-context';
+import { hasRole } from '../utils/authUtils';
 
 interface PrivateRouteProps {
   children: React.ReactNode;
@@ -13,7 +14,7 @@ const PrivateRoute: React.FC<PrivateRouteProps> = ({ children, requiredRole }) =
 
   const isAuthenticated = auth.isAuthenticated;
   const hasRequiredRole = requiredRole
-    ? Array.isArray(auth.user?.profile?.role) && auth.user?.profile?.role.includes(requiredRole)
+    ? hasRole(auth.user, requiredRole)
     : true;
 
   useEffect(() => {

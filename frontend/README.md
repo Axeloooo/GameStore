@@ -1,30 +1,56 @@
 # Game Store React Front-End
 
-Please follow these steps to configure and run this React front-end in your dev box:
+This README provides instructions to configure and run the Game Store React front-end with either Keycloak or Entra ID as your identity provider.
 
 ## 1. Install Node.js
-Download install Node.js from the official website: https://nodejs.org/en/download
+Download and install Node.js from the official website: https://nodejs.org/en/download
 
-The latest LTS version that this front-end was tested with is **v22.12.0**. Using a different version may not work.
+The recommended LTS version for this project is **v22.x** or later.
 
+## 2. Configure the Identity Provider
+You can configure the application to use either Keycloak or Entra ID.
 
-## 2. Configure Keycloak
-You need to create a new public client in Keycloak to let this React front-end access the protected Game Store back-end API endpoints and authenticate users.
+### Option A: Keycloak Configuration
+1. **Create a new client in Keycloak**:
+   * Navigate to your Keycloak admin console
+   * Create a new client with the following settings:
+     * **Client ID**: gamestore-frontend-react
+     * **Client Type**: SPA (Single Page Application)
+     * **Valid Redirect URIs**: http://localhost:5173/authentication/callback
+     * **Client authentication**: Off
+     * **Authentication flow**: Standard flow (enable), Direct access grants (disable), Implicit flow (disable)
 
-Here for the main settings you must use for this client:
-* **Name**: gamestore-frontend-react
-* **Valid Redirect URIs**: http://localhost:5173/authentication/callback
-* **Client authentication**: Off
-* **Authentication flow**: Standard flow (all others Off)
+2. **Configure client scopes**:
+   * Add the scope **gamestore_api.all** to the client configuration (this scope should be defined in your API)
 
-Also, you must add **gamestore_api.all** as an optional client scope for this new client.
+3. **Note your realm URL**:
+   * This will be needed for the environment configuration (typically something like http://localhost:8080/realms/gamestore)
+
+### Option B: Entra ID Configuration
+1. **Register an application in the Microsoft Entra admin center**:
+   * Navigate to Microsoft Entra ID > App registrations > New registration
+   * Enter a name for your application (e.g., "Game Store React Frontend")
+   * Select "Single-page application (SPA)" as the application type
+   * Add the redirect URI: http://localhost:5173/authentication/callback
+   * Register the application
+
+2. **Configure API permissions**:
+   * Go to "API permissions" 
+   * Add permissions for your back-end API (e.g., "gamestore_api.all" scope)
+   * Grant admin consent for these permissions if you have admin rights
+
+3. **Note your application (client) ID and tenant details**:
+   * Client ID will be displayed on the overview page
+   * Authority URL will be in the format: https://[tenant-name].ciamlogin.com/[tenant-id]/v2.0
 
 ## 3. Configure the Game Store back-end API
-The back-end API you have worked on across this course is mostly ready to work with this front-end. However, you need to update it with a CORS policy to allow requests from the React front-end.
+Update your API to allow CORS requests from the React front-end:
 
-To do that, open **Program.cs** in the back-end project and add the CORS policy:
+1. Open **Program.cs** in your back-end project
+2. Add the following CORS configuration:
 
 ```csharp
+// Add CORS services
 builder.Services.AddCors(options =>
 {
     options.AddDefaultPolicy(
@@ -38,40 +64,58 @@ builder.Services.AddCors(options =>
 });
 
 var app = builder.Build();
-```
 
-Also enable the CORS middleware:
-
-```csharp
+// Make sure to add CORS middleware BEFORE UseAuthorization
 app.UseCors();
 app.UseAuthorization();
 ```
 
-Just make sure to make the call to **UseCors** before **UseAuthorization**, or it won't work.
-
-More about CORS configuration in ASP.NET Core can be found [here](https://learn.microsoft.com/aspnet/core/security/cors)
-
-
 ## 4. Configure the React front-end
-Open and update the **.env** file at the root of this repo with the following settings:
-* **VITE_BACKEND_API_URL**: The URL of your Game Store back-end API
-* **VITE_OIDC_AUTHORITY**: The URL of your Keycloak realm (e.g. http://localhost:8080/realms/gamestore)
-* **VITE_OIDC_CLIENT_ID**: The client ID of the public client you just created in Keycloak (e.g. gamestore-frontend-react)
+Create or update the **.env** file at the root of this project with the following settings:
+
+```
+VITE_BACKEND_API_URL=http://localhost:5082
+
+# Identity Provider Selection (keycloak or entra)
+VITE_IDENTITY_PROVIDER=keycloak  # Change to "entra" if using Entra ID
+
+# Keycloak Configuration 
+VITE_KEYCLOAK_AUTHORITY=http://localhost:8080/realms/gamestore
+VITE_KEYCLOAK_CLIENT_ID=gamestore-frontend-react
+VITE_KEYCLOAK_SCOPE=openid gamestore_api.all
+
+# Entra ID Configuration
+VITE_ENTRA_AUTHORITY=https://your-tenant.ciamlogin.com/your-tenant-id/v2.0
+VITE_ENTRA_CLIENT_ID=your-client-id
+VITE_ENTRA_SCOPE=api://your-api-id/gamestore_api.all openid profile email offline_access
+```
+
+Replace the placeholder values with your actual configuration details.
 
 ## 5. Install the dependencies
-Open a terminal and navigate to the root of this repo, then run the following command:
+Open a terminal at the root directory of the project and run:
 
 ```bash
 npm install
 ```
 
 ## 6. Run the React front-end
-Make sure both your Game Store back-end API and Keycloak are running, then open a terminal and run the following command:
+Ensure your Game Store back-end API and identity provider (Keycloak or Entra ID) are running, then start the application:
 
 ```bash
 npm run dev
 ```
 
-This will start the React front-end on http://localhost:5173. 
+This will start the React front-end on http://localhost:5173.
 
-Open this URL in your browser and have fun!
+## 7. Using the application
+- Browse the game catalog without logging in
+- Log in using your identity provider credentials to:
+  - Add games to your cart
+  - Make purchases
+  - Edit or add games (if you have admin privileges)
+
+## Troubleshooting
+- If authentication fails, verify your .env configuration matches your identity provider settings
+- Check browser console for any CORS-related errors
+- Ensure your backend API is properly configured to validate tokens from your identity provider

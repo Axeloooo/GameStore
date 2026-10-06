@@ -5,6 +5,7 @@ import { BasketItem } from '../models/BasketItem';
 import BasketClient from '../clients/BasketClient';
 import { useAuth } from 'react-oidc-context';
 import { BasketState } from '../services/BasketState';
+import { getUserId } from '../utils/authUtils';
 
 interface BasketContextProps {
   basket: CustomerBasket | null;
@@ -23,7 +24,7 @@ interface BasketProviderProps {
 
 export const BasketProvider: React.FC<BasketProviderProps> = ({ children }) => {
   const auth = useAuth();
-  const userId = auth.user?.profile?.sub || null;
+  const userId = getUserId(auth.user);
   const accessToken = auth.user?.access_token || null;
 
   const basketClient = useMemo(() => new BasketClient(accessToken), [accessToken]);

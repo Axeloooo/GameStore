@@ -3,11 +3,12 @@ import { NavLink } from 'react-router-dom';
 import { useAuth } from 'react-oidc-context';
 import LoginDisplay from './LoginDisplay';
 import CartDisplay from './CartDisplay';
+import { hasRole } from '../utils/authUtils';
 
 const NavMenu: React.FC = () => {
   const auth = useAuth();
 
-  const isAdmin = Array.isArray(auth.user?.profile?.role) && auth.user?.profile?.role.includes('Admin');
+  const isAdmin = hasRole(auth.user, "Admin");
 
   return (
     <nav className="navbar navbar-expand-lg bg-body-tertiary" data-bs-theme="dark">

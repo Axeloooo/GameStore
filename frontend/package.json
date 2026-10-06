@@ -20,6 +20,7 @@
     "utf8": "^3.0.0"
   },
   "devDependencies": {
+    "@azure/static-web-apps-cli": "^2.0.4",
     "@eslint/js": "^9.15.0",
     "@types/crypto-js": "^4.2.2",
     "@types/react": "^18.3.12",
