@@ -12,7 +12,7 @@ public static class DataExtensions
     {
         await app.MigrateDbAsync();
         await app.SeedDbAsync();
-        app.Logger.LogInformation(18, "The database is ready!");
+        app.Logger.LogInformation(18, "The Game Store database is ready!");
     }
 
     public static WebApplicationBuilder AddGameStoreNpgsql<TContext>(
@@ -21,33 +21,16 @@ public static class DataExtensions
         TokenCredential credential
     ) where TContext : DbContext
     {
-        var connString = builder.Configuration.GetConnectionString(connectionStringName);
-
-        if (builder.Environment.IsDevelopment())
+        if (builder.Environment.IsProduction())
         {
-            builder.Services.AddNpgsql<TContext>(connString);
+            builder.AddAzureNpgsqlDbContext<TContext>(
+                connectionStringName,
+                settings => settings.Credential = credential
+            );
         }
         else
         {
-            builder.Services.AddNpgsql<TContext>(connString, dbContextOptionsBuilder =>
-            {
-                dbContextOptionsBuilder.ConfigureDataSource(dataSourceBuilder =>
-                {
-                    dataSourceBuilder.UsePeriodicPasswordProvider(
-                        async (_, cancellationToken) =>
-                        {
-                            var token = await credential.GetTokenAsync(
-                                new TokenRequestContext([postgreSqlScope]),
-                                cancellationToken
-                            );
-
-                            return token.Token;
-                        },
-                        TimeSpan.FromHours(24),
-                        TimeSpan.FromSeconds(10)
-                    );
-                });
-            });
+            builder.AddAzureNpgsqlDbContext<TContext>(connectionStringName);
         }
 
         return builder;

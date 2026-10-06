@@ -11,10 +11,18 @@ public static class CorsExtensions
             options.AddDefaultPolicy(
                 policy =>
                 {
-                    var originsString = builder.Configuration["AllowedOrigins"] ?? string.Empty;
-                    var allowedOrigins = originsString.Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-                    policy.WithOrigins(allowedOrigins)
-                          .WithHeaders(HeaderNames.Authorization, HeaderNames.ContentType)
+                    if (builder.Environment.IsDevelopment())
+                    {
+                        policy.AllowAnyOrigin();
+                    }
+                    else
+                    {
+                        var originsString = builder.Configuration["AllowedOrigins"] ?? string.Empty;
+                        var allowedOrigins = originsString.Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+                        policy.WithOrigins(allowedOrigins);
+                    }
+
+                    policy.WithHeaders(HeaderNames.Authorization, HeaderNames.ContentType)
                           .AllowAnyMethod();
                 });
         });
