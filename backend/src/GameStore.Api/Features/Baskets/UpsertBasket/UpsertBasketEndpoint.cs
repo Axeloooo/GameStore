@@ -1,7 +1,7 @@
 using System.Security.Claims;
-using GameStore.Api.Data;
+using GameStore.Data;
 using GameStore.Api.Features.Baskets.Authorization;
-using GameStore.Api.Models;
+using GameStore.Data.Models;
 using GameStore.Api.Shared.Authorization;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
@@ -58,7 +58,7 @@ public static class UpsertBasketEndpoint
             if (!authResult.Succeeded)
             {
                 return Results.Forbid();
-            }            
+            }
 
             await dbContext.SaveChangesAsync();
 

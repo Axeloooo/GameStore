@@ -4,26 +4,32 @@
     <TargetFramework>net8.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <UserSecretsId>451c9b7a-db53-4877-9ef4-99e49327957f</UserSecretsId>
     <ContainerRuntimeIdentifier>linux-musl-x64</ContainerRuntimeIdentifier>
     <ContainerRepository>gamestore-api</ContainerRepository>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Aspire.Azure.Npgsql.EntityFrameworkCore.PostgreSQL" Version="9.3.0" />
-    <PackageReference Include="Aspire.Azure.Storage.Blobs" Version="9.3.0" />
-    <PackageReference Include="Azure.Identity" Version="1.13.2" />
-    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.11" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.3">
+    <PackageReference Include="Aspire.Azure.Messaging.ServiceBus" Version="9.5.2" />
+    <PackageReference Include="Aspire.Azure.Security.KeyVault" Version="9.5.2" />
+
+    <PackageReference Include="Aspire.Azure.Storage.Blobs" Version="9.5.2" />
+    <PackageReference Include="Azure.Identity" Version="1.17.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.21" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.10" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.10">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="9.0.10" />
     <PackageReference Include="MinimalApis.Extensions" Version="0.11.0" />
-    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="9.0.4" />
-    <PackageReference Include="Swashbuckle.AspNetCore" Version="7.1.0" />
+    
+    <PackageReference Include="Stripe.net" Version="49.0.0" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="9.0.6" />
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\GameStore.Contracts\GameStore.Contracts.csproj" />
+    <ProjectReference Include="..\GameStore.Data\GameStore.Data.csproj" />
     <ProjectReference Include="..\GameStore.ServiceDefaults\GameStore.ServiceDefaults.csproj" />
   </ItemGroup>
 

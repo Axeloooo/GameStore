@@ -1,8 +1,8 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
-using GameStore.Api.Data;
+using GameStore.Data;
 using GameStore.Api.Features.Games.Constants;
-using GameStore.Api.Models;
+using GameStore.Data.Models;
 using GameStore.Api.Shared.Authorization;
 using GameStore.Api.Shared.Cdn;
 using GameStore.Api.Shared.FileUpload;
@@ -30,7 +30,7 @@ public static class CreateGameEndpoint
                 return Results.Unauthorized();
             }
 
-            var currentUserId = user?.FindFirstValue(JwtRegisteredClaimNames.Email) 
+            var currentUserId = user?.FindFirstValue(JwtRegisteredClaimNames.Email)
                                 ?? user?.FindFirstValue(GameStoreClaimTypes.UserId);
 
             if (string.IsNullOrEmpty(currentUserId))

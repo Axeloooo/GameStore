@@ -1,5 +1,5 @@
 using System.Security.Claims;
-using GameStore.Api.Data;
+using GameStore.Data;
 using GameStore.Api.Features.Baskets.Authorization;
 using GameStore.Api.Shared.Authorization;
 using Microsoft.AspNetCore.Authorization;

@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk.Worker">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UserSecretsId>dotnet-GameStore.Worker-4e9a4c9c-3463-4893-8c41-7b9278df53cb</UserSecretsId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Aspire.Azure.Messaging.ServiceBus" Version="9.5.2" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="8.0.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\GameStore.Contracts\GameStore.Contracts.csproj" />
+    <ProjectReference Include="..\GameStore.Data\GameStore.Data.csproj" />
+    <ProjectReference Include="..\GameStore.ServiceDefaults\GameStore.ServiceDefaults.csproj" />
+  </ItemGroup>
+</Project>

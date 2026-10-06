@@ -1,6 +1,6 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
-using GameStore.Api.Data;
+using GameStore.Data;
 using GameStore.Api.Features.Games.Constants;
 using GameStore.Api.Shared.Authorization;
 using GameStore.Api.Shared.FileUpload;
