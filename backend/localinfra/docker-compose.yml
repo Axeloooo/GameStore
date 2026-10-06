@@ -1,6 +1,6 @@
 services:
-  keycloack:
-    image: quay.io/keycloak/keycloak:26.1.4
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.0.7
     container_name: keycloak
     ports:
       - "8080:8080"
@@ -8,8 +8,29 @@ services:
       - KC_BOOTSTRAP_ADMIN_USERNAME=admin
       - KC_BOOTSTRAP_ADMIN_PASSWORD=admin
     volumes:
-      - keycloack-data:/opt/keycloak/data
+      - keycloak-data:/opt/keycloak/data
     command: ["start-dev"]
 
+  azurite:
+    image: mcr.microsoft.com/azure-storage/azurite:3.34.0
+    container_name: azurite
+    ports:
+      - "10000:10000"
+    volumes:
+      - azurite-data:/data
+
+  postgres:
+    image: postgres:17.4
+    container_name: postgres
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_HOST_AUTH_METHOD=trust
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    
 volumes:
-  keycloack-data:
+  keycloak-data:
+  azurite-data:
+  postgres-data:
