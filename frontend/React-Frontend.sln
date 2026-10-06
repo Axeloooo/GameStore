@@ -1,0 +1,24 @@
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.5.2.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GameStore.Frontend.AppHost", "GameStore.Frontend.AppHost\GameStore.Frontend.AppHost.csproj", "{DD68A608-5C1B-8C1C-1860-959ECA54BD68}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{DD68A608-5C1B-8C1C-1860-959ECA54BD68}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DD68A608-5C1B-8C1C-1860-959ECA54BD68}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DD68A608-5C1B-8C1C-1860-959ECA54BD68}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DD68A608-5C1B-8C1C-1860-959ECA54BD68}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {605D0D07-C49D-4807-BE2E-677DCC796200}
+	EndGlobalSection
+EndGlobal
