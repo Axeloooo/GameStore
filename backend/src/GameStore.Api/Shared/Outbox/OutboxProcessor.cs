@@ -8,7 +8,7 @@ namespace GameStore.Api.Shared.Outbox;
 
 public class OutboxProcessor(
     IServiceProvider serviceProvider,
-    ServiceBusMessagePublisher messagePublisher,
+    IMessagePublisher messagePublisher,
     TimeProvider timeProvider,
     ILogger<OutboxProcessor> logger
 ) : BackgroundService
