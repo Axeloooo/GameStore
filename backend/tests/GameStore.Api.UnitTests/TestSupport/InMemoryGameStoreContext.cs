@@ -21,12 +21,17 @@ internal sealed class InMemoryGameStoreContext
 
     public GameStoreContext Create(params IInterceptor[] interceptors)
     {
-        var options = new DbContextOptionsBuilder<GameStoreContext>()
-            .UseInMemoryDatabase(databaseName, databaseRoot)
-            .AddInterceptors(interceptors)
-            .Options;
+        var builder = new DbContextOptionsBuilder<GameStoreContext>();
+        Configure(builder, interceptors);
 
-        return new GameStoreContext(options);
+        return new GameStoreContext(builder.Options);
+    }
+
+    // Also usable from AddDbContext, for code that resolves the context from DI.
+    public void Configure(DbContextOptionsBuilder builder, params IInterceptor[] interceptors)
+    {
+        builder.UseInMemoryDatabase(databaseName, databaseRoot)
+               .AddInterceptors(interceptors);
     }
 
     public static Game NewGame(string name, decimal price) => new()
