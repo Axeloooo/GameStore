@@ -9,7 +9,8 @@ Prereqs: `az` (>= 2.50) with the `azure-devops` extension, `azd`, .NET 8 SDK, Do
 yamllint -d relaxed backend/.azdo/pipelines/azure-dev.yml
 # the file has CRLF line endings and long lines; relaxed reports those. To silence them:
 yamllint -d '{extends: relaxed, rules: {new-lines: disable, line-length: disable}}' backend/.azdo/pipelines/azure-dev.yml
-dotnet test backend/Backend.sln        # Docker must be running (Testcontainers); 23 tests
+dotnet test backend/Backend.sln        # Docker must be running (Testcontainers); 23 integration + 82 unit tests (1 skipped)
+dotnet test backend/tests/GameStore.Api.UnitTests   # unit tests only, no Docker, a few seconds
 ```
 Local equivalent of the pipeline test slicing (xunit v3 test DLL run directly, 2 slices):
 ```bash
@@ -62,6 +63,7 @@ Option A (recommended): keep the monorepo and edit the pipeline (documentation o
 ```
 - `workingDirectory: backend` (AzureCLI@2 input) is the pipeline equivalent of `cd backend`; alternatively put `cd backend` first in each `inlineScript`.
 - `ParallelTesting` needs no change: it uses `checkout: none` and downloads the artifacts to `$(Pipeline.Workspace)/TestBinaries|TestScripts`.
+- The Build job's `Run unit tests` step (`DotNetCoreCLI@2 test`) also needs the prefix: `projects: 'backend/tests/GameStore.Api.UnitTests/GameStore.Api.UnitTests.csproj'`.
 - The `trigger: - main` branch filter does not match this repo's default branch `devel`; pick the real branch.
 - Path to the YAML when creating the pipeline becomes `backend/.azdo/pipelines/azure-dev.yml` (step 6).
 
@@ -174,7 +176,7 @@ az pipelines runs list --pipeline-name <pipeline-name> --top 1 -o table
 az pipelines runs show --id <run-id> --query "{status:status,result:result}"
 ```
 Expected, per job:
-1. Build: .NET 8, `build`, artifacts `TestBinaries` and `TestScripts`.
+1. Build: .NET 8, `build`, `Run unit tests` (`DotNetCoreCLI@2 test --no-build` on `GameStore.Api.UnitTests`, no Docker, results published to the run's Tests tab; a failure stops the run before ParallelTesting), artifacts `TestBinaries` and `TestScripts`.
 2. ParallelTesting (2 copies, `checkout: none`): downloads artifacts, lists tests, `create_slicing_filter_condition.sh` logs `Total agents: 2`, `Agent number: 1|2`, `Target tests:`; step `Run tests` runs `dotnet .../GameStore.IntegrationTests.dll --filter-method $(targetTestsFilter)` (xunit v3 runner executable, not `dotnet test`). Testcontainers starts Postgres etc. through Docker, preinstalled on `ubuntu-latest`. Together the slices cover 23 tests.
 3. Deploy: `azd provision --no-prompt` then `azd deploy --no-prompt` through `azconnection`; then
 ```bash

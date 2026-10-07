@@ -20,6 +20,13 @@ jobs:
         inputs:
           command: 'build'
 
+      - task: DotNetCoreCLI@2
+        displayName: Run unit tests
+        inputs:
+          command: 'test'
+          projects: 'tests/GameStore.Api.UnitTests/GameStore.Api.UnitTests.csproj'
+          arguments: '--no-build'
+
       - publish: $(System.DefaultWorkingDirectory)/tests/GameStore.IntegrationTests/bin/Debug/net8.0
         displayName: Publish Test Binaries
         artifact: TestBinaries

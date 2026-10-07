@@ -22,6 +22,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StripeCLI.Hosting", "src\St
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GameStore.IntegrationTests", "tests\GameStore.IntegrationTests\GameStore.IntegrationTests.csproj", "{DC0C7441-A1C6-BF01-AEF9-F5FAA71069DB}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GameStore.Api.UnitTests", "tests\GameStore.Api.UnitTests\GameStore.Api.UnitTests.csproj", "{DCA4EA24-A2D4-44E8-B069-A925CEC64BBE}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -60,6 +62,10 @@ Global
 		{DC0C7441-A1C6-BF01-AEF9-F5FAA71069DB}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DC0C7441-A1C6-BF01-AEF9-F5FAA71069DB}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{DC0C7441-A1C6-BF01-AEF9-F5FAA71069DB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DCA4EA24-A2D4-44E8-B069-A925CEC64BBE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DCA4EA24-A2D4-44E8-B069-A925CEC64BBE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DCA4EA24-A2D4-44E8-B069-A925CEC64BBE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DCA4EA24-A2D4-44E8-B069-A925CEC64BBE}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -73,6 +79,7 @@ Global
 		{7A472D1B-02BA-218B-3D27-BCF868297E04} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
 		{ECB5EA0C-898F-6F29-651B-9BA6B8355614} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
 		{DC0C7441-A1C6-BF01-AEF9-F5FAA71069DB} = {0AB3BF05-4346-4AA6-1389-037BE0695223}
+		{DCA4EA24-A2D4-44E8-B069-A925CEC64BBE} = {0AB3BF05-4346-4AA6-1389-037BE0695223}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {89430D66-6231-4897-B517-8EAE8DD895FA}
