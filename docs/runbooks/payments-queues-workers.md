@@ -55,7 +55,7 @@ docker volume rm gamestore.apphost-<apphost-hash>-postgres-data gamestore.apphos
 ```
 
 Known issues
-- `AppHost.cs` references `./bicep/frontdoor.bicep` but the file is `frontDoor.bicep`; breaks publish on case-sensitive filesystems (Linux/CI). Rename one to match.
+- `AppHost.cs` references `./bicep/frontdoor.bicep`; since the Azure DevOps course the file is also named `frontdoor.bicep` (lowercase), so the case mismatch that breaks publish on case-sensitive filesystems (Linux/CI) is gone.
 - `backend/.gitignore` was dropped; the root `.gitignore` now ignores `.azure/` (azd env, may hold parameters), `.env.local`, `node_modules/` and `dist/`. Never `git add` them.
 
 ## 0. Login and variables
@@ -102,7 +102,7 @@ az containerapp revision restart -g <resource-group> -n <container-app-name> --r
 The API's managed identity needs `Key Vault Secrets User` on the vault (Aspire normally assigns it; confirm). `Stripe__CheckoutReturnUrl` comes from parameter `CheckoutReturnUrl`.
 
 ## 4. Backend deploy (azd / Container Apps / Front Door)
-Fix first: make the Bicep filename match (`frontDoor.bicep` vs the lowercase reference in `AppHost.cs`) if on Linux/CI.
+The Bicep file name already matches the AppHost reference (`frontdoor.bicep`), so no rename is needed on Linux/CI.
 ```bash
 cd backend
 azd auth login --tenant-id <tenant-id>

@@ -1,11 +1,11 @@
 # Runbook: Azure for .NET Developers (deferred cloud chapters)
 
 Order: Local setup, then cloud steps 0-9. Bash/zsh. Replace every `<placeholder>`; never commit real values.
-Backend: `backend/src/GameStore.Api` (.NET 8, Linux App Service). Frontend: `courses/04-azure-for-dotnet-developers/React_Frontend_Start/React-Frontend-Start` (or repo `frontend/`).
+Backend: `backend/src/GameStore.Api` (.NET 8, Linux App Service). Frontend: `courses/04-azure-for-dotnet-developers/React_Frontend_Start/React-Frontend-Start` (or repo `frontend/GameStore.Frontend`).
 
 ## Local setup (manual Keycloak config missing from backend/localinfra/gamestore-realm.json)
 
-Start infra: `docker compose -f backend/localinfra/docker-compose.yml up -d`. Admin console: http://localhost:8080, realm `gamestore`.
+Start infra: `dotnet run --project backend/src/GameStore.AppHost --launch-profile http` (since course 2 the AppHost starts Keycloak, PostgreSQL and Azurite; the course 1 `docker-compose.yml` no longer exists, see the README). Admin console: http://localhost:8080 (admin password: the `Parameters:keycloak-password` user secret), realm `gamestore`.
 
 1. Client scope `gamestore_api.all` (Client scopes > Create, type Optional, protocol OpenID Connect).
    - Mapper "Audience": Add mapper > By configuration > Audience. Included Client Audience `gamestore-api`, Add to access token ON. Why: API validates `ValidAudience=gamestore-api`.
