@@ -98,10 +98,14 @@ if have az; then
   fi
 fi
 if have azd; then
-  if azd auth login --check-status >/dev/null 2>&1; then
+  # 'azd auth login --check-status' exits 0 even when signed out, so read its message
+  azd_status="$(azd auth login --check-status 2>&1)"
+  if printf '%s' "$azd_status" | grep -qi "not logged in"; then
+    fail "azd is not signed in: run 'azd auth login --tenant-id <tenant-id>'"
+  elif printf '%s' "$azd_status" | grep -qi "logged in"; then
     pass "azd is signed in"
   else
-    fail "azd is not signed in: run 'azd auth login --tenant-id <tenant-id>'"
+    warn "could not determine azd login state: run 'azd auth login --check-status'"
   fi
 fi
 

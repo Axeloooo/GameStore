@@ -98,3 +98,4 @@ Short explanations of the tools, services and ideas used in this project, with w
 | **Runbook** | A parameterised, step-by-step procedure for something that was not executed here (cloud setup). | [docs/runbooks/](runbooks/). Placeholders like `<tenant-id>` are replaced with your own values. |
 | **Placeholder (`[... HERE]` / `<name>`)** | A stand-in for a real value that must never be committed. | Committed config and docs. Real values go in user-secrets, shell variables or git-ignored files. |
 | **Local-only files** | Files git ignores. | `.claude/`, `courses/`, `docs/superpowers/`, `backend/.stripe/`, `backend/.azure/`, `.env.local`. |
+| **Merge gate** | The rule that decides when a pull request may be merged without a human clicking merge: every required reviewer agent approved the current head commit and CI is green. | See [Merging in CLAUDE.md](../CLAUDE.md) and the README's Git Workflow. |

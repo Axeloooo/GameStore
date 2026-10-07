@@ -189,6 +189,7 @@ No cloud resources are provisioned from this repository. [docs/deployment.md](do
 - The `devel` branch is the default branch.
 - The `main` branch is the production branch.
 - Every change goes through a pull request to `devel` that follows [PULL_REQUEST_TEMPLATE.md](PULL_REQUEST_TEMPLATE.md).
+- Pull requests are not merged by hand. Reviewer agents (security and quality; the course reviewer too for course PRs) review the PR, and the orchestrator merges it once all of them approve and CI is green. Cloud spend, deleting remote branches or data and anything touching `main` still need the owner's explicit approval.
 
 ## Branch Naming Convention
 
