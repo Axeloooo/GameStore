@@ -12,8 +12,11 @@ public static class GetGamesEndpoint
         app.MapGet("/", async (
             GameStoreContext dbContext,
             [AsParameters] GetGamesDto request,
-            CdnUrlTransformer cdnUrlTransformer) =>
+            CdnUrlTransformer cdnUrlTransformer,
+            ILoggerFactory loggerFactory) =>
         {
+            var logger = loggerFactory.CreateLogger("Games");
+
             var skipCount = (request.PageNumber - 1) * request.PageSize;
 
             var filteredGames = dbContext.Games
