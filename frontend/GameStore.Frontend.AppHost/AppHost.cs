@@ -5,11 +5,13 @@ const string IdentityProviderKey = "VITE_IDENTITY_PROVIDER";
 const string EntraClientIdKey = "VITE_ENTRA_CLIENT_ID";
 const string EntraAuthorityKey = "VITE_ENTRA_AUTHORITY";
 const string EntraScopeKey = "VITE_ENTRA_SCOPE";
+const string StripePublishableKey = "VITE_STRIPE_PUBLISHABLE_KEY";
 
 var backendUrl = builder.AddParameter("BackendUrl");
 var entraClientId = builder.AddParameter("EntraClientId");
 var entraAuthority = builder.AddParameter("EntraAuthority");
 var entraScope = builder.AddParameter("EntraScope");
+var stripePublishableKey = builder.AddParameter("StripePublishableKey");
 
 var identityProvider = builder.Configuration["IdentityProvider"]
     ?? throw new InvalidOperationException("IdentityProvider is not set in the configuration.");
@@ -23,7 +25,8 @@ var frontend = builder.AddNpmApp("gamestore-frontend", "../GameStore.Frontend", 
                                 .WithBuildArg(IdentityProviderKey, identityProvider)
                                 .WithBuildArg(EntraClientIdKey, entraClientId)
                                 .WithBuildArg(EntraAuthorityKey, entraAuthority)
-                                .WithBuildArg(EntraScopeKey, entraScope);
+                                .WithBuildArg(EntraScopeKey, entraScope)
+                                .WithBuildArg(StripePublishableKey, stripePublishableKey);
                     });
 
 if (builder.ExecutionContext.IsRunMode)
@@ -32,7 +35,8 @@ if (builder.ExecutionContext.IsRunMode)
             .WithEnvironment(IdentityProviderKey, identityProvider)
             .WithEnvironment(EntraClientIdKey, entraClientId)
             .WithEnvironment(EntraAuthorityKey, entraAuthority)
-            .WithEnvironment(EntraScopeKey, entraScope);
+            .WithEnvironment(EntraScopeKey, entraScope)
+            .WithEnvironment(StripePublishableKey, stripePublishableKey);
 
     if (identityProvider == "Keycloak")
     {
@@ -44,6 +48,11 @@ if (builder.ExecutionContext.IsRunMode)
                 .WithEnvironment("VITE_KEYCLOAK_AUTHORITY", keycloakAuthority)
                 .WithEnvironment("VITE_KEYCLOAK_SCOPE", keycloakScope);
     }
+
+    var externalApi = builder.AddExternalService("backend-api", backendUrl)
+                            .WithHttpHealthCheck("/health/ready");
+
+    frontend.WaitFor(externalApi);
 }
 
 builder.Build().Run();

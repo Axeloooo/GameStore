@@ -1,6 +1,6 @@
 using System;
-using GameStore.Api.Data;
-using GameStore.Api.Models;
+using GameStore.Data;
+using GameStore.Data.Models;
 using GameStore.Api.Shared.Authorization;
 using Microsoft.EntityFrameworkCore;
 

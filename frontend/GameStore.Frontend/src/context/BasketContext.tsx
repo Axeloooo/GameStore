@@ -8,89 +8,105 @@ import { BasketState } from '../services/BasketState';
 import { getUserId } from '../utils/authUtils';
 
 interface BasketContextProps {
-  basket: CustomerBasket | null;
-  loading: boolean;
-  error: string | null;
-  addItem: (newItem: BasketItem) => Promise<CommandResult>;
-  updateQuantity: (id: string, quantity: number) => Promise<CommandResult>;
-  removeItem: (itemId: string) => Promise<CommandResult>;
+    basket: CustomerBasket | null;
+    loading: boolean;
+    error: string | null;
+    addItem: (newItem: BasketItem) => Promise<CommandResult>;
+    updateQuantity: (id: string, quantity: number) => Promise<CommandResult>;
+    removeItem: (itemId: string) => Promise<CommandResult>;
+    refreshBasket: () => Promise<void>;
 }
 
 const BasketContext = createContext<BasketContextProps | undefined>(undefined);
 
 interface BasketProviderProps {
-  children: React.ReactNode;
+    children: React.ReactNode;
 }
 
 export const BasketProvider: React.FC<BasketProviderProps> = ({ children }) => {
-  const auth = useAuth();
-  const userId = getUserId(auth.user);
-  const accessToken = auth.user?.access_token || null;
+    const auth = useAuth();
+    const userId = getUserId(auth.user);
+    const accessToken = auth.user?.access_token || null;
 
-  const basketClient = useMemo(() => new BasketClient(accessToken), [accessToken]);
-  const basketState = useMemo(() => new BasketState(basketClient, userId), [basketClient, userId]);
+    const basketClient = useMemo(() => new BasketClient(accessToken), [accessToken]);
+    const basketState = useMemo(() => new BasketState(basketClient, userId), [basketClient, userId]);
 
-  const [basket, setBasket] = useState<CustomerBasket | null>(null);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
+    const [basket, setBasket] = useState<CustomerBasket | null>(null);
+    const [loading, setLoading] = useState<boolean>(true);
+    const [error, setError] = useState<string | null>(null);
 
-  const fetchBasket = useCallback(async () => {
-    if (!userId) {
-      setBasket({ customerId: '', items: [], totalAmount: 0 });
-      setLoading(false);
-      return;
-    }
+    const fetchBasket = useCallback(async () => {
+        // Always indicate loading when we attempt to (re)fetch
+        setLoading(true);
 
-    try {
-      const fetchedBasket = await basketState.getBasketAsync();
-      setBasket(fetchedBasket);
-    } catch (err) {
-      setError('Failed to fetch basket');
-    } finally {
-      setLoading(false);
-    }
-  }, [userId, basketState]);
+        // If auth is still initializing, keep loading and wait for next run
+        if (!userId) {
+            if (auth.isLoading) {
+                // Don't override basket during auth init to avoid flicker
+                return;
+            }
 
-  useEffect(() => {
-    fetchBasket();
-    basketState.setOnBasketUpdated(fetchBasket);
-  }, [fetchBasket, basketState]);
+            // No user present and auth is not loading: treat as guest (empty basket)
+            setBasket({ customerId: '', items: [], totalAmount: 0 });
+            setLoading(false);
+            return;
+        }
 
-  const addItem = async (newItem: BasketItem): Promise<CommandResult> => {
-    const result = await basketState.addItemAsync(newItem);
-    if (result.succeeded) {
-      fetchBasket();
-    }
-    return result;
-  };
+        try {
+            const fetchedBasket = await basketState.getBasketAsync();
+            setBasket(fetchedBasket);
+        } catch (err) {
+            setError('Failed to fetch basket');
+        } finally {
+            setLoading(false);
+        }
+    }, [userId, basketState, auth.isLoading]);
 
-  const updateQuantity = async (id: string, quantity: number): Promise<CommandResult> => {
-    const result = await basketState.updateQuantityAsync(id, quantity);
-    if (result.succeeded) {
-      fetchBasket();
-    }
-    return result;
-  };
+    useEffect(() => {
+        fetchBasket();
+        basketState.setOnBasketUpdated(fetchBasket);
+    }, [fetchBasket, basketState]);
 
-  const removeItem = async (itemId: string): Promise<CommandResult> => {
-    const result = await basketState.removeItemAsync(itemId);
-    if (result.succeeded) {
-      fetchBasket();
-    }
-    return result;
-  };
+    const addItem = async (newItem: BasketItem): Promise<CommandResult> => {
+        const result = await basketState.addItemAsync(newItem);
+        if (result.succeeded) {
+            fetchBasket();
+        }
+        return result;
+    };
 
-  return (
-    <BasketContext.Provider value={{ basket, loading, error, addItem, updateQuantity, removeItem }}>
-      {children}
-    </BasketContext.Provider>
-  );
+    const updateQuantity = async (id: string, quantity: number): Promise<CommandResult> => {
+        const result = await basketState.updateQuantityAsync(id, quantity);
+        if (result.succeeded) {
+            fetchBasket();
+        }
+        return result;
+    };
+
+    const removeItem = async (itemId: string): Promise<CommandResult> => {
+        const result = await basketState.removeItemAsync(itemId);
+        if (result.succeeded) {
+            fetchBasket();
+        }
+        return result;
+    };
+
+    const refreshBasket = useCallback(async (): Promise<void> => {
+        basketState.clearCache();
+        await fetchBasket();
+    }, [basketState, fetchBasket]);
+
+    return (
+        <BasketContext.Provider value={{ basket, loading, error, addItem, updateQuantity, removeItem, refreshBasket }}>
+            {children}
+        </BasketContext.Provider>
+    );
 };
 
 export const useBasket = (): BasketContextProps => {
-  const context = useContext(BasketContext);
-  if (!context) {
-    throw new Error('useBasket must be used within a BasketProvider');
-  }
-  return context;
+    const context = useContext(BasketContext);
+    if (!context) {
+        throw new Error('useBasket must be used within a BasketProvider');
+    }
+    return context;
 };

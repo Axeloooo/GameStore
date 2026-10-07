@@ -9,7 +9,7 @@ public static class FileUploadExtensions
         this WebApplicationBuilder builder,
         TokenCredential credential)
     {
-        builder.AddAzureBlobClient("Blobs", settings =>
+        builder.AddAzureBlobServiceClient("Blobs", settings =>
         {
             if (builder.Environment.IsProduction())
             {

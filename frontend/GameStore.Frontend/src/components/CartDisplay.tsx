@@ -2,20 +2,33 @@ import React from 'react';
 import { useBasket } from '../context/BasketContext';
 
 const CartDisplay: React.FC = () => {
-  const { basket } = useBasket();
+    const { basket, refreshBasket } = useBasket();
 
-  const totalQuantity = basket?.items.reduce((total, item) => total + item.quantity, 0) || 0;
+    // Ensure badge stays in sync after external flows (e.g., checkout redirects)
+    React.useEffect(() => {
+        // Refresh once on mount
+        refreshBasket().catch(() => { /* noop */ });
 
-  return (
-    <div className="position-relative">
-      <a aria-label="cart" href="/cart" className="d-flex align-items-center text-decoration-none text-white">
-        <i className="bi bi-bag-fill fs-3"></i>
-        <span className="position-absolute start-50 translate-middle text-dark fw-bold fs-6" style={{ top: '60%' }}>
-          {totalQuantity}
-        </span>
-      </a>
-    </div>
-  );
+        // Also refresh when the window regains focus
+        const onFocus = () => {
+            refreshBasket().catch(() => { /* noop */ });
+        };
+        window.addEventListener('focus', onFocus);
+        return () => window.removeEventListener('focus', onFocus);
+    }, [refreshBasket]);
+
+    const totalQuantity = basket?.items.reduce((total, item) => total + item.quantity, 0) || 0;
+
+    return (
+        <div className="position-relative">
+            <a aria-label="cart" href="/cart" className="d-flex align-items-center text-decoration-none text-white">
+                <i className="bi bi-bag-fill fs-3"></i>
+                <span className="position-absolute start-50 translate-middle text-dark fw-bold fs-6" style={{ top: '60%' }}>
+                    {totalQuantity}
+                </span>
+            </a>
+        </div>
+    );
 };
 
 export default CartDisplay;

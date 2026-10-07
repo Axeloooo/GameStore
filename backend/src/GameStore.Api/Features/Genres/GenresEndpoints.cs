@@ -1,7 +1,7 @@
 using System;
-using GameStore.Api.Data;
+using GameStore.Data;
 using GameStore.Api.Features.Genres.GetGenres;
-using GameStore.Api.Models;
+using GameStore.Data.Models;
 
 namespace GameStore.Api.Features.Genres;
 

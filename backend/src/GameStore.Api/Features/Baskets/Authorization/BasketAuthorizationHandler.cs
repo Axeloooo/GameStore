@@ -1,15 +1,15 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
-using GameStore.Api.Models;
+using GameStore.Data.Models;
 using GameStore.Api.Shared.Authorization;
 using Microsoft.AspNetCore.Authorization;
 
 namespace GameStore.Api.Features.Baskets.Authorization;
 
-// Authorization handler. A class responsible for the evaluation of 
+// Authorization handler. A class responsible for the evaluation of
 // a requirement's properties.
 
-// A resource-based handler is an authorization handler that specifies 
+// A resource-based handler is an authorization handler that specifies
 // both a requirement and a resource type.
 
 public class BasketAuthorizationHandler
@@ -37,6 +37,6 @@ public class BasketAuthorizationHandler
     }
 }
 
-// Authorization requirement. A collection of data parameters that a policy 
+// Authorization requirement. A collection of data parameters that a policy
 // can use to evaluate the current user principal.
 public class OwnerOrAdminRequirement : IAuthorizationRequirement { }

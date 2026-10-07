@@ -41,7 +41,7 @@ public class FileUploader(BlobServiceClient blobServiceClient)
         await containerClient.CreateIfNotExistsAsync(PublicAccessType.Blob);
 
         var safeFileName = $"{Guid.NewGuid()}{fileExtension}";
-        
+
         var blobClient = containerClient.GetBlobClient(safeFileName);
         await blobClient.DeleteIfExistsAsync();
 

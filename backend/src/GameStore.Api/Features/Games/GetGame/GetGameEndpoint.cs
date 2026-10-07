@@ -1,6 +1,6 @@
-using GameStore.Api.Data;
+using GameStore.Data;
 using GameStore.Api.Features.Games.Constants;
-using GameStore.Api.Models;
+using GameStore.Data.Models;
 using GameStore.Api.Shared.Cdn;
 
 namespace GameStore.Api.Features.Games.GetGame;

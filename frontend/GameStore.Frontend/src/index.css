@@ -1,0 +1,15 @@
+/* Custom styles for Stripe checkout placeholders */
+.tall-placeholder {
+    height: 2.5rem;
+}
+
+/* Custom styles to match Blazor styling exactly */
+.placeholder-glow .placeholder {
+    animation: placeholder-glow 2s ease-in-out infinite alternate;
+}
+
+@keyframes placeholder-glow {
+    50% {
+        opacity: .5;
+    }
+}
