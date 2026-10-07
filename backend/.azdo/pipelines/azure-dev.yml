@@ -1,0 +1,125 @@
+# Run when commits are pushed to main
+trigger:
+  - main
+
+pool:
+  vmImage: ubuntu-latest
+
+jobs:
+  - job: Build
+    displayName: Build
+
+    steps:
+      - task: UseDotNet@2
+        inputs:
+          version: '8.x'
+        displayName: Set up .NET 8
+
+      - task: DotNetCoreCLI@2
+        displayName: Build
+        inputs:
+          command: 'build'
+
+      - publish: $(System.DefaultWorkingDirectory)/tests/GameStore.IntegrationTests/bin/Debug/net8.0
+        displayName: Publish Test Binaries
+        artifact: TestBinaries
+
+      - publish: $(System.DefaultWorkingDirectory)/tests/scripts
+        displayName: Publish Test Scripts
+        artifact: TestScripts
+
+  - job: ParallelTesting
+    displayName: Run tests
+    dependsOn: Build
+    strategy:
+      parallel: 2
+
+    steps:
+      - checkout: none
+
+      - download: current
+        artifact: TestBinaries
+
+      - download: current
+        artifact: TestScripts
+
+      - task: UseDotNet@2
+        inputs:
+          version: '8.x'
+        displayName: Set up .NET 8
+
+      - bash: |
+          tests=($(dotnet $(Pipeline.Workspace)/TestBinaries/GameStore.IntegrationTests.dll --list-tests | grep '^ *GameStore\.IntegrationTests\.' | sed 's/^ *//' ))
+          . $(Pipeline.Workspace)/TestScripts/create_slicing_filter_condition.sh "${tests[@]}"
+        displayName: 'Create slicing filter condition'
+
+      - bash: |
+          echo "Slicing filter condition: $(targetTestsFilter)"
+        displayName: 'Echo slicing filter condition'
+
+      - bash: |
+          dotnet $(Pipeline.Workspace)/TestBinaries/GameStore.IntegrationTests.dll --filter-method $(targetTestsFilter)
+        displayName: 'Run tests'
+
+  - job: Deploy
+    displayName: Deploy
+    dependsOn: ParallelTesting
+
+    steps:
+      # setup-azd@1 needs to be manually installed in your organization
+      # if you can't install it, you can use the below bash script to install azd
+      # and remove this step
+      - task: setup-azd@1
+        displayName: Install azd
+
+      # If you can't install above task in your organization, you can comment it and uncomment below task to install azd
+      # - task: Bash@3
+      #   displayName: Install azd
+      #   inputs:
+      #     targetType: 'inline'
+      #     script: |
+      #       curl -fsSL https://aka.ms/install-azd.sh | bash
+
+      # azd delegate auth to az to use service connection with AzureCLI@2
+      - pwsh: |
+          azd config set auth.useAzCliAuth "true"
+        displayName: Configure AZD to Use AZ CLI Authentication.
+
+      - task: AzureCLI@2
+        displayName: Provision Infrastructure
+        inputs:
+          azureSubscription: azconnection
+          scriptType: bash
+          scriptLocation: inlineScript
+          keepAzSessionActive: true
+          inlineScript: |
+            azd provision --no-prompt
+        env:
+          AZURE_SUBSCRIPTION_ID: $(AZURE_SUBSCRIPTION_ID)
+          AZURE_LOCATION: $(AZURE_LOCATION)
+          AZURE_CHECKOUT_RETURN_URL: $(AZURE_CHECKOUT_RETURN_URL)
+          AZURE_ENTRA_VALID_AUDIENCE: $(AZURE_ENTRA_VALID_AUDIENCE)
+          AZURE_ENV_NAME: $(AZURE_ENV_NAME)
+          AZURE_ALLOWED_ORIGINS: $(AZURE_ALLOWED_ORIGINS)
+          AZURE_ENTRA_AUTHORITY: $(AZURE_ENTRA_AUTHORITY)
+          AZURE_STRIPE_API_KEY: $(AZURE_STRIPE_API_KEY)
+
+      - task: AzureCLI@2
+        displayName: Deploy Application
+        inputs:
+          azureSubscription: azconnection
+          scriptType: bash
+          scriptLocation: inlineScript
+          keepAzSessionActive: true
+          inlineScript: |
+            azd deploy --no-prompt
+        env:
+          AZURE_SUBSCRIPTION_ID: $(AZURE_SUBSCRIPTION_ID)
+          AZURE_LOCATION: $(AZURE_LOCATION)
+          AZURE_CHECKOUT_RETURN_URL: $(AZURE_CHECKOUT_RETURN_URL)
+          AZURE_ENTRA_VALID_AUDIENCE: $(AZURE_ENTRA_VALID_AUDIENCE)
+          AZURE_ENV_NAME: $(AZURE_ENV_NAME)
+          AZURE_ALLOWED_ORIGINS: $(AZURE_ALLOWED_ORIGINS)
+          AZURE_ENTRA_AUTHORITY: $(AZURE_ENTRA_AUTHORITY)
+          AZURE_STRIPE_API_KEY: $(AZURE_STRIPE_API_KEY)
+
