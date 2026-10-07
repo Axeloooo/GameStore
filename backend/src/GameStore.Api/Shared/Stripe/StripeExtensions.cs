@@ -35,6 +35,8 @@ public static class StripeExtensions
             return new PaymentIntentService(client);
         });
 
+        builder.Services.AddSingleton<IStripeEventFactory, StripeEventFactory>();
+
         return builder;
     }
 }

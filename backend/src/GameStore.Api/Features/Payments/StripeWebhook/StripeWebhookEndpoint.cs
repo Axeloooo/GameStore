@@ -16,6 +16,7 @@ public static class StripeWebhookEndpoint
             HttpContext context,
             PaymentIntentService paymentIntentService,
             ConfirmOrderPaymentOperation confirmOrderPayment,
+            IStripeEventFactory stripeEventFactory,
             IOptions<StripeOptions> options,
             ILoggerFactory loggerFactory
         ) =>
@@ -27,14 +28,7 @@ public static class StripeWebhookEndpoint
 
             try
             {
-                // Stripe.net pins one API version (49.0.0: 2025-09-30.clover), but events
-                // arrive in the Stripe account's default version (e.g. 2022-11-15), which
-                // makes ConstructEvent throw. The signature is still verified.
-                var stripeEvent = EventUtility.ConstructEvent(
-                                        jsonBody,
-                                        signature,
-                                        options.Value.EndpointSecret,
-                                        throwOnApiVersionMismatch: false);
+                var stripeEvent = stripeEventFactory.Create(jsonBody, signature);
 
                 logger.LogInformation("Received Stripe event: {EventType}", stripeEvent.Type);
 

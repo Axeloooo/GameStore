@@ -6,7 +6,7 @@ namespace GameStore.Api.Shared.Messaging;
 public class ServiceBusMessagePublisher(
     ServiceBusClient serviceBusClient,
     ILogger<ServiceBusMessagePublisher> logger
-)
+) : IMessagePublisher
 {
     public async Task PublishAsync<T>(
         T message,

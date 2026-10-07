@@ -22,8 +22,8 @@
     </PackageReference>
     <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="9.0.10" />
     <PackageReference Include="MinimalApis.Extensions" Version="0.11.0" />
-    
-    <PackageReference Include="Stripe.net" Version="49.0.0" />
+
+    <PackageReference Include="Stripe.net" Version="49.2.0" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="9.0.6" />
   </ItemGroup>
 
@@ -31,6 +31,10 @@
     <ProjectReference Include="..\GameStore.Contracts\GameStore.Contracts.csproj" />
     <ProjectReference Include="..\GameStore.Data\GameStore.Data.csproj" />
     <ProjectReference Include="..\GameStore.ServiceDefaults\GameStore.ServiceDefaults.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+      <InternalsVisibleTo Include="GameStore.IntegrationTests" />
   </ItemGroup>
 
 </Project>

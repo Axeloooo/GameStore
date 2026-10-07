@@ -1,0 +1,17 @@
+{
+    "UserConfig": {
+        "Namespaces": [
+            {
+                "Name": "gamestore",
+                "Queues": [
+                    {
+                        "Name": "orders"
+                    }
+                ]
+            }
+        ],
+        "Logging": {
+            "Type": "File"
+        }
+    }
+}

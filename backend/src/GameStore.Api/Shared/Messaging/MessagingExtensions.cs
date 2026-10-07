@@ -15,7 +15,7 @@ public static class MessagingExtensions
             settings => settings.Credential = credential
         );
 
-        builder.Services.AddSingleton<ServiceBusMessagePublisher>();
+        builder.Services.AddSingleton<IMessagePublisher, ServiceBusMessagePublisher>();
 
         return builder;
     }
