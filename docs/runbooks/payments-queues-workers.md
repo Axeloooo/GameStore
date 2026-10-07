@@ -42,7 +42,7 @@ Expected: order status `Completed`, `OutboxMessages` rows processed (pgAdmin htt
 5. Front end: `frontend/GameStore.Frontend.AppHost/appsettings.json` `Parameters.StripePublishableKey` = `<stripe-test-publishable-key>` (pk_test_ only; use user-secrets), then `dotnet run --project frontend/GameStore.Frontend.AppHost --launch-profile http` (app http://localhost:5173).
 
 Local deviations from the course
-- `StripeWebhookEndpoint.cs` calls `EventUtility.ConstructEvent(..., throwOnApiVersionMismatch: false)`. Stripe.net 49.0.0 pins API version `2025-09-30.clover`; `stripe listen` forwards events in the account's default version (for example `2022-11-15`; `--latest` gives a newer release, which also mismatches), so without this every webhook returned 400 (`Received event with API version ..., but Stripe.net 49.0.0 expects API version 2025-09-30.clover`) and orders stayed `Pending`. The signature is still verified.
+- `backend/src/GameStore.Api/Shared/Stripe/StripeEventFactory.cs` (course 4 moved `ConstructEvent` there; `StripeWebhookEndpoint.cs` now takes `IStripeEventFactory`) calls `EventUtility.ConstructEvent(..., throwOnApiVersionMismatch: false)`. Stripe.net pins API version `2025-09-30.clover`; `stripe listen` forwards events in the account's default version (for example `2022-11-15`; `--latest` gives a newer release, which also mismatches), so without this every webhook returned 400 (`Received event with API version ..., but Stripe.net expects API version 2025-09-30.clover`) and orders stayed `Pending`. The signature is still verified.
 - `EntraAuthority` placeholder: with `[ENTRA AUTHORITY HERE]`, every anonymous request (including `/games` and `/health/ready`) returns 500 (`The MetadataAddress or Authority must use HTTPS ...`). Locally, set any https authority:
 ```bash
 dotnet user-secrets set "Parameters:EntraAuthority" "https://login.microsoftonline.com/common/v2.0" --project backend/src/GameStore.AppHost
@@ -71,7 +71,7 @@ Why: Stripe must call the deployed API; the endpoint gets its own signing secret
 Stripe Dashboard (test mode) > Developers > Webhooks (event destinations) > Add endpoint:
 - URL: `https://<container-app-fqdn>/payments/stripe-webhook`
 - Event: `checkout.session.completed` (the event the handler processes; add others only if the handler uses them)
-- API version: the account's default is fine. The repo passes `throwOnApiVersionMismatch: false` in `StripeWebhookEndpoint.cs` (see "Local deviations from the course"), so events in a version other than Stripe.net's pinned one are accepted.
+- API version: the account's default is fine. The repo passes `throwOnApiVersionMismatch: false` in `backend/src/GameStore.Api/Shared/Stripe/StripeEventFactory.cs` (see "Local deviations from the course"), so events in a version other than Stripe.net's pinned one are accepted.
 - Copy the signing secret `<stripe-webhook-secret>` (whsec_...) from the endpoint page.
 Consumed by step 3 as `Stripe--EndpointSecret` -> `Stripe:EndpointSecret` -> `StripeOptions.EndpointSecret`, used by the webhook endpoint to verify the `Stripe-Signature` header.
 Ordering: you need `<container-app-fqdn>` first, so do step 4, then this step, then step 3's endpoint-secret command, then restart the revision.
