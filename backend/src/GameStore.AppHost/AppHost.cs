@@ -131,6 +131,10 @@ if (builder.ExecutionContext.IsPublishMode)
     keyvault.AddSecret("stripeApiKeySecret", "Stripe--SecretKey", stripeApiKey);
 
     api.WithReference(keyvault);
+
+    var insights = builder.AddAzureApplicationInsights("app-insights");
+    api.WithReference(insights);
+    worker.WithReference(insights);
 }
 
 if (builder.ExecutionContext.IsRunMode)
