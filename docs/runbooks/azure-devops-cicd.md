@@ -27,7 +27,7 @@ dotnet $DLL --filter-method "<name1> <name2> ..."
 Notes: the script sets `targetTestsFilter` with `##vso[task.setvariable]`, consumed by the step `Run tests` as `$(targetTestsFilter)`. Agents get tests round-robin (agent 1: 1,3,5..; agent 2: 2,4,6..). The script is committed with LF endings (was CRLF in the course zip; a CRLF `#!/bin/bash\r` breaks on ubuntu agents). Keep it LF: `sed -i '' 's/\r$//' backend/tests/scripts/create_slicing_filter_condition.sh` (macOS; GNU: drop the `''`) and mark `*.sh text eol=lf` in `.gitattributes` if the repo gains one.
 
 ## Repo-layout fix (the .NET solution lives in `backend/`)
-The course pipeline assumes the solution, `tests/`, `azure.yaml` are at the repo root and `.azdo/` at `<repo>/.azdo`. Here they are under `backend/`. Without changes: `DotNetCoreCLI@2 build` finds no project/sln at the root and fails; both `publish:` paths do not exist; `azd` finds no `azure.yaml`.
+The course pipeline assumes the solution, `tests/`, `azure.yaml` are at the repo root and `.azdo/` at `<repo>/.azdo`. Here they are under `backend/`. Without changes: `DotNetCoreCLI@2 build`'s default `projects` glob would pick up every csproj under `backend/` individually (rather than the solution), and the `publish:` paths and `azd` still assume the repo-root layout, so set `projects: 'backend/Backend.sln'` explicitly; both `publish:` paths do not exist at the root; `azd` finds no `azure.yaml`.
 
 Option A (recommended): keep the monorepo and edit the pipeline (documentation only, not applied in this repo):
 ```diff
@@ -67,7 +67,7 @@ Option A (recommended): keep the monorepo and edit the pipeline (documentation o
 
 Option B: import `backend/` as the root of a dedicated repo (e.g. `git subtree split -P backend -b backend-only`, push that branch as `main` of `<repo-name>`). Then the pipeline works unchanged and the YAML path is `.azdo/pipelines/azure-dev.yml`. Loses history linkage with the monorepo.
 
-Also required on Linux agents: the Bicep file name must match the AppHost reference (`backend/src/GameStore.AppHost/bicep/frontdoor.bicep`; already renamed in this branch's staged changes). Case mismatch breaks `azd provision` on ubuntu.
+Also required on Linux agents: the Bicep file name must match the AppHost reference (`backend/src/GameStore.AppHost/bicep/frontdoor.bicep`; renamed in this PR). Case mismatch breaks `azd provision` on ubuntu.
 
 ## 0. Login and variables
 ```bash
