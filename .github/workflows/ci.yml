@@ -60,6 +60,12 @@ jobs:
     name: Backend integration tests
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    env:
+      # Testcontainers prefixes Docker Hub image names (postgres:15.1,
+      # testcontainers/ryuk:0.14.0) with this registry, so CI pulls them from
+      # Google's Docker Hub mirror instead of registry-1.docker.io. Images that
+      # already name a registry (mcr.microsoft.com/...) are left unchanged.
+      TESTCONTAINERS_HUB_IMAGE_NAME_PREFIX: mirror.gcr.io
     steps:
       - uses: actions/checkout@v4
         with:
@@ -82,8 +88,85 @@ jobs:
       - name: Build
         run: dotnet build backend/Backend.sln --no-restore
 
+      # The Docker Hub images come from the mirror; Docker Hub itself is only a
+      # fallback, where anonymous pulls from shared runner IPs hit the rate
+      # limit. The secrets context is not allowed in a step "if", so this step
+      # only reports whether the secret exists. Fork and Dependabot pull
+      # requests get no secrets: the login is then skipped.
+      - name: Check for Docker Hub credentials
+        id: dockerhub
+        env:
+          DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
+        run: |
+          if [ -n "$DOCKERHUB_TOKEN" ]; then
+            echo "available=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "available=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::DOCKERHUB_TOKEN is not set; a Docker Hub fallback pull would be anonymous."
+          fi
+
+      # docker login writes ~/.docker/config.json, used by the Docker Hub
+      # fallback pulls below. The mirror needs no login, so a failed login
+      # (Docker Hub auth outages) is a warning, not a job failure.
+      - name: Log in to Docker Hub
+        if: steps.dockerhub.outputs.available == 'true'
+        continue-on-error: true
+        env:
+          DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+          DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
+        run: |
+          for attempt in 1 2 3; do
+            if printf '%s' "$DOCKERHUB_TOKEN" | docker login --username "$DOCKERHUB_USERNAME" --password-stdin; then
+              exit 0
+            fi
+            echo "::warning::Docker Hub login attempt $attempt failed."
+            sleep $((attempt * 10))
+          done
+          exit 1
+
+      # Pulls every image the tests use, one at a time and with retries, so
+      # Testcontainers finds them locally (pull policy "missing") instead of
+      # starting many parallel pulls with no retry. A Docker Hub image that the
+      # mirror cannot serve is pulled from Docker Hub and tagged with the
+      # mirror name that Testcontainers looks for. Keep this list in sync with
+      # the images in backend/tests/GameStore.IntegrationTests.
+      - name: Pull container images
+        run: |
+          pull() {
+            local attempt
+            for attempt in 1 2 3 4; do
+              if docker pull --quiet "$1"; then
+                return 0
+              fi
+              echo "::warning::docker pull $1 failed (attempt $attempt of 4)."
+              if [ "$attempt" -lt 4 ]; then
+                sleep $((attempt * 15))
+              fi
+            done
+            return 1
+          }
+          pull_hub_image() {
+            local mirrored="$TESTCONTAINERS_HUB_IMAGE_NAME_PREFIX/$1"
+            if pull "$mirrored"; then
+              return 0
+            fi
+            echo "::warning::Falling back to Docker Hub for $1."
+            pull "docker.io/$1"
+            docker tag "docker.io/$1" "$mirrored"
+          }
+          pull_hub_image postgres:15.1
+          pull_hub_image testcontainers/ryuk:0.14.0
+          pull mcr.microsoft.com/azure-storage/azurite:3.35.0
+          pull mcr.microsoft.com/azure-messaging/servicebus-emulator:2.0.1
+          pull mcr.microsoft.com/mssql/server:2022-CU14-ubuntu-22.04
+
       - name: Integration tests
         run: dotnet test backend/tests/GameStore.IntegrationTests --no-build
+
+      # Also runs after a failed login; logout must never fail the job.
+      - name: Log out of Docker Hub
+        if: always() && steps.dockerhub.outputs.available == 'true'
+        run: docker logout || true
 
   frontend:
     name: Front end lint and build
@@ -130,7 +213,7 @@ jobs:
           node-version: 22
 
       - name: Install commitlint
-        run: npm install --no-save --no-audit --no-fund --prefix "$RUNNER_TEMP/commitlint" "@commitlint/cli@$COMMITLINT_VERSION"
+        run: npm install --ignore-scripts --no-save --no-audit --no-fund --prefix "$RUNNER_TEMP/commitlint" "@commitlint/cli@$COMMITLINT_VERSION"
 
       - name: Lint the pull request commits
         env:

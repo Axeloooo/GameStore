@@ -416,7 +416,10 @@ flowchart LR
     end
 
     subgraph integration["Job: Backend integration tests"]
-        i1["dotnet restore and build"] --> i2["GameStore.IntegrationTests<br/>Testcontainers on ubuntu-latest"]
+        i1["dotnet restore and build"] --> i0["docker login, best effort<br/>only if the Docker Hub secrets exist"]
+        i0 --> ip["Pull container images<br/>mirror.gcr.io and MCR, with retries"]
+        ip --> i2["GameStore.IntegrationTests<br/>Testcontainers on ubuntu-latest"]
+        i2 --> i3["docker logout<br/>always, after a login"]
     end
 
     subgraph frontend["Job: Front end lint and build"]
@@ -427,6 +430,23 @@ flowchart LR
         c1["commitlint<br/>.commitlintrc.json"]
     end
 ```
+
+### Container images in the integration tests job
+
+Testcontainers needs two Docker Hub images (`postgres:15.1` and `testcontainers/ryuk:0.14.0`) and three images from Microsoft's registry `mcr.microsoft.com` (Azurite 3.35.0, the Service Bus emulator 2.0.1 and the SQL Server image the emulator uses, 2022-CU14-ubuntu-22.04). Anonymous pulls from Docker Hub on the shared GitHub runner IP addresses hit the [Docker Hub rate limit](glossary.md#continuous-integration-and-commits) (`toomanyrequests`) or time out on `auth.docker.io`, and about 23 tests starting their own pulls at once, with no retry, made that worse. So the job:
+
+1. Sets `TESTCONTAINERS_HUB_IMAGE_NAME_PREFIX: mirror.gcr.io`. Testcontainers then asks for `mirror.gcr.io/postgres:15.1` and `mirror.gcr.io/testcontainers/ryuk:0.14.0`, Google's [Docker Hub mirror](glossary.md#continuous-integration-and-commits), which needs no login. Images that already name a registry (`mcr.microsoft.com/...`) are not changed.
+2. Logs in to Docker Hub when the repository secrets `DOCKERHUB_USERNAME` and `DOCKERHUB_TOKEN` exist, with up to 3 attempts. The login is best effort (`continue-on-error`): a failed login is a warning, not a job failure, because the mirror does not need it.
+3. Pulls every image in a "Pull container images" step before the tests, one at a time with up to 4 attempts each. If the mirror cannot serve a Docker Hub image, the step pulls it from Docker Hub (authenticated when the login worked) and tags it with the mirror name that Testcontainers looks for. Testcontainers only pulls images that are missing, so the tests then start from local images. The list in the workflow must be kept in sync with the images in `backend/tests/GameStore.IntegrationTests`.
+4. Runs `docker logout` at the end (even when the tests or the login failed, and it never fails the job itself) so the credential does not stay on the runner.
+
+- The secrets are optional now: they only matter for the Docker Hub fallback. The token reaches the login step through `env` and `--password-stdin`, never on the command line or in the log.
+- Pull requests from forks and from Dependabot run without repository secrets, so a Docker Hub fallback there is anonymous and can still hit the rate limit; re-run the job later if that happens. (Dependabot runs read Dependabot secrets instead; adding the same two names under Settings > Secrets and variables > Dependabot would let them log in too.) A workflow that calls `ci.yml` through `workflow_call` must pass `secrets: inherit` for the login to happen.
+- To create the secrets: on Docker Hub, Account settings > Personal access tokens > Generate new token with the read-only **Public Repo Read-only** access scope; then on GitHub, the repository's Settings > Secrets and variables > Actions > New repository secret, once for `DOCKERHUB_USERNAME` (the Docker Hub user name) and once for `DOCKERHUB_TOKEN` (the token).
+
+### Dependabot
+
+[.github/dependabot.yml](../.github/dependabot.yml) checks GitHub Actions (`/`), the npm packages (`/frontend`) and the NuGet packages (`/backend`) every week and opens pull requests against `devel`. Minor and patch updates are grouped into one pull request per ecosystem, majors come one by one, and each ecosystem has at most 5 open pull requests. Commit messages are `ci: ...` for actions and `chore: ...` for packages, without a scope, so they pass the commit message job. Dependabot pull requests go through the same CI and review as any other.
 
 ## 10. Testing strategy
 

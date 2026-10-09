@@ -37,6 +37,7 @@ public class OrdersWorkerTests : IAsyncLifetime
         var configFile = Path.Combine(AppContext.BaseDirectory, "Worker", "servicebus.config.json");
 
         serviceBusContainer = new ServiceBusBuilder()
+                .WithImage("mcr.microsoft.com/azure-messaging/servicebus-emulator:2.0.1")
                 .WithAcceptLicenseAgreement(true)
                 .WithConfig(configFile)
                 .Build();

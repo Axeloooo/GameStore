@@ -126,15 +126,18 @@ dotnet test backend/Backend.sln                     # unit and integration tests
 | Job | What it checks |
 | --- | --- |
 | Backend build and unit tests | `dotnet build backend/Backend.sln` and the unit tests. |
-| Backend integration tests | The integration tests, with Docker on the runner. |
+| Backend integration tests | The integration tests, with Docker on the runner. The container images are pulled first, with retries, from Google's Docker Hub mirror (`mirror.gcr.io`) and `mcr.microsoft.com`; Docker Hub is only a fallback, with a best-effort login when the optional `DOCKERHUB_USERNAME` and `DOCKERHUB_TOKEN` repository secrets exist (see [architecture](docs/architecture.md#container-images-in-the-integration-tests-job)). |
 | Front end lint and build | `npm ci`, `npm run lint` and `npm run build` in `frontend/`. |
 | Commit messages | Pull requests only: every commit message is checked with commitlint against [`.commitlintrc.json`](.commitlintrc.json). |
+
+[`.github/dependabot.yml`](.github/dependabot.yml) has Dependabot open weekly update pull requests against `devel` for GitHub Actions, npm and NuGet packages (see [architecture](docs/architecture.md#dependabot)).
 
 ## Repository layout
 
 ```text
 .github/
   workflows/ci.yml              GitHub Actions CI
+  dependabot.yml                Dependabot update schedule
   pull_request_template.md      pull request template
 backend/
   Backend.sln
