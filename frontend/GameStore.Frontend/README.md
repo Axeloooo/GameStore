@@ -1,6 +1,6 @@
 # Lootlark React Front-End (GameStore)
 
-This README provides instructions to configure and run the Game Store React front-end with either Keycloak or Entra ID as your identity provider.
+This README provides instructions to configure and run the Lootlark front end (the GameStore React app) with either Keycloak or Entra ID as your identity provider.
 
 ## 1. Install Node.js
 Download and install Node.js from the official website: https://nodejs.org/en/download
@@ -91,6 +91,8 @@ VITE_ENTRA_SCOPE=api://your-api-id/gamestore_api.all openid profile email offlin
 ```
 
 Replace the placeholder values with your actual configuration details.
+
+VITE_ values are baked into the browser bundle: never put a secret in them (only public client ids, authority URLs, the API URL and the Stripe publishable key pk_test_...).
 
 ## 5. Install the dependencies
 Open a terminal at the root directory of the project and run:
