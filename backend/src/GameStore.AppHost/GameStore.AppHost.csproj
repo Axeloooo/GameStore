@@ -1,0 +1,29 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <Sdk Name="Aspire.AppHost.Sdk" Version="9.5.2" />
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <UserSecretsId>f84ec54c-5dd0-4ea9-95ac-78e100d77bd8</UserSecretsId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Aspire.Hosting.AppHost" Version="9.5.2" />
+    <PackageReference Include="Aspire.Hosting.Azure.ServiceBus" Version="9.5.2" />
+    <PackageReference Include="Aspire.Hosting.Azure.Storage" Version="9.5.2" />
+    <PackageReference Include="Aspire.Hosting.Keycloak" Version="9.5.2-preview.1.25522.3" />
+    <PackageReference Include="Aspire.Hosting.Azure.PostgreSQL" Version="9.5.2" />
+    <!-- Patched MessagePack (GHSA-hv8m-jj95-wg3x, GHSA-vh6j-jc39-fggf); StreamJsonRpc via Aspire.Hosting brings 2.5.192 -->
+    <PackageReference Include="MessagePack" Version="2.5.307" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\GameStore.Api\GameStore.Api.csproj" />
+    <ProjectReference Include="..\GameStore.Worker\GameStore.Worker.csproj" />
+    <ProjectReference Include="..\StripeCLI.Hosting\StripeCLI.Hosting.csproj" IsAspireProjectResource="false" />
+  </ItemGroup>
+
+</Project>

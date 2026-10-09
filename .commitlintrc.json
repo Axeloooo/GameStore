@@ -1,0 +1,32 @@
+{
+  "parserPreset": {
+    "parserOpts": {
+      "headerPattern": "^(\\w*)(?:\\((.*)\\))?!?: (.*)$",
+      "breakingHeaderPattern": "^(\\w*)(?:\\((.*)\\))?!: (.*)$",
+      "headerCorrespondence": ["type", "scope", "subject"],
+      "noteKeywords": ["BREAKING CHANGE", "BREAKING-CHANGE"],
+      "revertPattern": "^(?:Revert|revert:)\\s\"?([\\s\\S]+?)\"?\\s*This reverts commit (\\w*)\\.",
+      "revertCorrespondence": ["header", "hash"]
+    }
+  },
+  "defaultIgnores": true,
+  "rules": {
+    "header-max-length": [2, "always", 100],
+    "header-trim": [2, "always"],
+    "type-empty": [2, "never"],
+    "type-case": [2, "always", "lower-case"],
+    "type-enum": [
+      2,
+      "always",
+      ["feat", "fix", "perf", "refactor", "docs", "test", "build", "ci", "chore", "style", "revert"]
+    ],
+    "scope-case": [2, "always", "lower-case"],
+    "subject-empty": [2, "never"],
+    "subject-case": [0],
+    "subject-full-stop": [2, "never", "."],
+    "body-leading-blank": [1, "always"],
+    "body-max-line-length": [0],
+    "footer-leading-blank": [1, "always"],
+    "footer-max-line-length": [0]
+  }
+}

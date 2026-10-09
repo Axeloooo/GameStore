@@ -1,0 +1,41 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <ContainerRuntimeIdentifier>linux-musl-x64</ContainerRuntimeIdentifier>
+    <ContainerRepository>gamestore-api</ContainerRepository>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Aspire.Azure.Messaging.ServiceBus" Version="9.5.2" />
+    <PackageReference Include="Aspire.Azure.Security.KeyVault" Version="9.5.2" />
+
+    <PackageReference Include="Aspire.Azure.Storage.Blobs" Version="9.5.2" />
+    <PackageReference Include="Azure.Identity" Version="1.21.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.31" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.20" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.20">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="9.0.20" />
+    <PackageReference Include="MinimalApis.Extensions" Version="0.11.0" />
+
+    <PackageReference Include="Stripe.net" Version="49.2.0" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="9.0.6" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\GameStore.Contracts\GameStore.Contracts.csproj" />
+    <ProjectReference Include="..\GameStore.Data\GameStore.Data.csproj" />
+    <ProjectReference Include="..\GameStore.ServiceDefaults\GameStore.ServiceDefaults.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+      <InternalsVisibleTo Include="GameStore.IntegrationTests" />
+      <InternalsVisibleTo Include="GameStore.Api.UnitTests" />
+  </ItemGroup>
+
+</Project>

@@ -50,3 +50,14 @@ UpgradeLog*.htm
 .config/
 
 .DS_Store
+
+.claude/
+
+# Stripe CLI webhook secret written by the AppHost (course 3)
+.stripe/
+.env
+.env.*
+!.env.example
+# Front-end build artifacts (course frontend tree ships no .gitignore)
+node_modules/
+dist/
