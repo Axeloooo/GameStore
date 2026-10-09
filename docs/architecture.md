@@ -402,13 +402,14 @@ Notes:
 
 ## 9. Continuous integration
 
-[.github/workflows/ci.yml](../.github/workflows/ci.yml) runs on GitHub Actions for pull requests to `devel` or `main` and pushes to those branches. The four jobs run in parallel; nothing is deployed. A second workflow, `release.yml`, creates version tags and GitHub Releases from `main` (see [Releases](#releases)).
+[.github/workflows/ci.yml](../.github/workflows/ci.yml) runs on GitHub Actions for pull requests to `devel` or `main` and pushes to those branches. The five jobs run in parallel; nothing is deployed. A second workflow, `release.yml`, creates version tags and GitHub Releases from `main` (see [Releases](#releases)).
 
 ```mermaid
 flowchart LR
     trigger(["Pull request or push<br/>devel, main"]) --> backend
     trigger --> integration
     trigger --> frontend
+    trigger --> audit
     trigger -->|"pull requests only"| commits
 
     subgraph backend["Job: Backend build and unit tests"]
@@ -426,6 +427,12 @@ flowchart LR
         f1["npm ci"] --> f2["npm run lint"] --> f3["npm run build"]
     end
 
+    subgraph audit["Job: Dependency audit"]
+        a1["npm ci --ignore-scripts<br/>frontend"] --> a2["npm audit --omit=dev<br/>fails on high, critical"]
+        a2 --> a3["npm audit, all dependencies<br/>warning only"]
+        a3 --> a4["dotnet list package<br/>--include-transitive --vulnerable<br/>fails on any finding"]
+    end
+
     subgraph commits["Job: Commit messages"]
         c1["commitlint<br/>.commitlintrc.json"]
     end
@@ -437,7 +444,7 @@ Testcontainers needs two Docker Hub images (`postgres:15.1` and `testcontainers/
 
 1. Sets `TESTCONTAINERS_HUB_IMAGE_NAME_PREFIX: mirror.gcr.io`. Testcontainers then asks for `mirror.gcr.io/postgres:15.1` and `mirror.gcr.io/testcontainers/ryuk:0.14.0`, Google's [Docker Hub mirror](glossary.md#continuous-integration-and-commits), which needs no login. Images that already name a registry (`mcr.microsoft.com/...`) are not changed.
 2. Logs in to Docker Hub when the repository secrets `DOCKERHUB_USERNAME` and `DOCKERHUB_TOKEN` exist, with up to 3 attempts. The login is best effort (`continue-on-error`): a failed login is a warning, not a job failure, because the mirror does not need it.
-3. Pulls every image in a "Pull container images" step before the tests, one at a time with up to 4 attempts each. If the mirror cannot serve a Docker Hub image, the step pulls it from Docker Hub (authenticated when the login worked) and tags it with the mirror name that Testcontainers looks for. Testcontainers only pulls images that are missing, so the tests then start from local images. The list in the workflow must be kept in sync with the images in `backend/tests/GameStore.IntegrationTests`.
+3. Pulls every image in a "Pull container images" step before the tests, one at a time with up to 4 attempts each. If the mirror cannot serve a Docker Hub image, the step pulls it from Docker Hub (authenticated when the login worked) and tags it with the mirror name that Testcontainers looks for. Testcontainers only pulls images that are missing, so the tests then start from local images. The list in the workflow must be kept in sync with the images in `backend/tests/GameStore.IntegrationTests`, and checked on every `Testcontainers.*` update, because even a patch release can change a module's default image tag.
 4. Runs `docker logout` at the end (even when the tests or the login failed, and it never fails the job itself) so the credential does not stay on the runner.
 
 - The secrets are optional now: they only matter for the Docker Hub fallback. The token reaches the login step through `env` and `--password-stdin`, never on the command line or in the log.
@@ -446,7 +453,15 @@ Testcontainers needs two Docker Hub images (`postgres:15.1` and `testcontainers/
 
 ### Dependabot
 
-[.github/dependabot.yml](../.github/dependabot.yml) checks GitHub Actions (`/`), the npm packages (`/frontend`) and the NuGet packages (`/backend`) every week and opens pull requests against `devel`. Minor and patch updates are grouped into one pull request per ecosystem, majors come one by one, and each ecosystem has at most 5 open pull requests. Commit messages are `ci: ...` for actions and `chore: ...` for packages, without a scope, so they pass the commit message job. Dependabot pull requests go through the same CI and review as any other.
+[.github/dependabot.yml](../.github/dependabot.yml) configures Dependabot **version updates**: it checks GitHub Actions (`/`), the npm packages (`/frontend`) and the NuGet packages (`/backend`) every week and opens pull requests against `devel`. Only safe updates arrive on their own; majors that need deliberate work are ignored and upgraded by hand in their own pull request.
+
+- **Security coverage.** Dependabot **alerts** and **security updates** are repository settings, not part of `dependabot.yml`; they are currently off, and the owner enables them under Settings > Code security. Security updates always target the default branch (`devel`), and because every entry here sets `target-branch`, GitHub does not apply this file's options to them (see the `target-branch` entry of the Dependabot options reference). An `ignore` rule that names only a dependency would otherwise also block its security updates, while a rule that lists `update-types` does not, so every rule here lists `update-types` and security fixes can still arrive either way. The compensating control until then, and a second check afterwards, is the [Dependency audit](#9-continuous-integration) CI job: it fails on a high or critical advisory in a production npm dependency (`npm audit --omit=dev --audit-level=high`; dev tooling findings are a warning only) and on any known-vulnerable NuGet package, top-level or transitive (`dotnet list package --include-transitive --vulnerable`, which always exits 0, so the job checks its output for "has the following vulnerable packages").
+- **Grouping.** All GitHub Actions updates, majors included, come as one pull request (group `actions`, pattern `*`). npm and NuGet minor and patch updates are grouped into one pull request per ecosystem (`npm-minor-and-patch`, `nuget-minor-and-patch`); a major that is not ignored comes on its own. Each ecosystem has at most 5 open pull requests.
+- **npm ignore rules (majors only).** `eslint`, `@eslint/js` and `eslint-plugin-react-hooks` (ESLint 10 and the React Compiler lint rules are one migration); `typescript` (TypeScript 7 is the native compiler); `@stripe/stripe-js` and `@stripe/react-stripe-js` (the Stripe.js API changes, and react-stripe-js 7 requires stripe-js 10); `vite` and `@vitejs/plugin-react` (Vite 8 is outside plugin-react 4's peer range, so `npm ci` fails, and plugin-react 6 requires Vite 8); `@types/react`, `@types/react-dom` and `@types/node` (they follow React 18 and the Node 22 used in CI). `react` and `react-dom` majors are not ignored and come as their own pull request.
+- **NuGet ignore rules.** Every major (`*`), because the backend targets .NET 8 and Aspire 9.5 and a major (EF Core 10, Aspire 13) needs a framework upgrade. Majors and minors of `Aspire.*`, so Aspire stays on 9.5.x patches to match the Aspire 9.5.2 hosting. Majors and minors of the course-pinned test tooling `xunit`, `xunit.runner.visualstudio`, `FluentAssertions`, `Moq` and `NSubstitute`; patch releases stay allowed so fixes can arrive (the rule is per package name, so it also holds `xunit.runner.visualstudio` and `NSubstitute` in the integration test project). Majors and minors of `Testcontainers.*`, because newer versions change the default image tags that the CI "Pull container images" step pre-pulls; even a patch can change a tag, so check that list on every Testcontainers pull request, and lift this rule once the list has been reviewed.
+- **Cooldown.** A new release waits 14 days before Dependabot proposes it (`cooldown.default-days: 14`), which implements the rule of only using releases that are at least two weeks old; npm and NuGet majors wait 30 days (`semver-major-days: 30`). GitHub Actions supports only `default-days`. Cooldown applies to version updates only, not to security updates.
+
+Commit messages are `ci: ...` for actions and `chore: ...` for packages, without a scope, so they pass the commit message job. Dependabot pull requests go through the same CI and review as any other.
 
 ### Releases
 

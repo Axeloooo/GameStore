@@ -128,9 +128,10 @@ dotnet test backend/Backend.sln                     # unit and integration tests
 | Backend build and unit tests | `dotnet build backend/Backend.sln` and the unit tests. |
 | Backend integration tests | The integration tests, with Docker on the runner. The container images are pulled first, with retries, from Google's Docker Hub mirror (`mirror.gcr.io`) and `mcr.microsoft.com`; Docker Hub is only a fallback, with a best-effort login when the optional `DOCKERHUB_USERNAME` and `DOCKERHUB_TOKEN` repository secrets exist (see [architecture](docs/architecture.md#container-images-in-the-integration-tests-job)). |
 | Front end lint and build | `npm ci`, `npm run lint` and `npm run build` in `frontend/`. |
+| Dependency audit | Fails on a high or critical advisory in a production npm dependency (`npm audit --omit=dev --audit-level=high`; dev tooling findings are a warning only) and on any known-vulnerable NuGet package, top-level or transitive (`dotnet list package --include-transitive --vulnerable`). It compensates for Dependabot security updates while they are off. |
 | Commit messages | Pull requests only: every commit message is checked with commitlint against [`.commitlintrc.json`](.commitlintrc.json). |
 
-[`.github/dependabot.yml`](.github/dependabot.yml) has Dependabot open weekly update pull requests against `devel` for GitHub Actions, npm and NuGet packages (see [architecture](docs/architecture.md#dependabot)).
+[`.github/dependabot.yml`](.github/dependabot.yml) has Dependabot open weekly update pull requests against `devel` for GitHub Actions, npm and NuGet packages: all actions updates in one pull request, npm and NuGet minor and patch updates grouped per ecosystem, majors that need deliberate work (ESLint, TypeScript, Stripe.js, Vite, every NuGet major, Aspire minors) ignored, the course-pinned test tooling and Testcontainers held to patch releases, and a 14-day cooldown before a new release is proposed. These are version updates only: Dependabot alerts and security updates are repository settings that the owner enables under Settings > Code security, and until then the Dependency audit job is the compensating control (see [architecture](docs/architecture.md#dependabot)).
 
 ## Releases
 
