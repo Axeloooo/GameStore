@@ -62,7 +62,6 @@ courses/
 docs/superpowers/
 # Stripe CLI webhook secret written by the AppHost (course 3)
 .stripe/
-.azure/
 .env
 .env.*
 !.env.example
