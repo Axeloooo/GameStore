@@ -8,9 +8,11 @@
 
     <ItemGroup>
         <PackageReference Include="Aspire.Azure.Npgsql.EntityFrameworkCore.PostgreSQL" Version="9.5.2" />
+        <PackageReference Include="Azure.Identity" Version="1.21.0" />
+        <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.20" />
         <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="9.0.4" />
         <!-- Patched OpenTelemetry.Api (GHSA-g94r-2vxg-569j); Aspire.Azure.Npgsql brings 1.9.0 -->
-        <PackageReference Include="OpenTelemetry.Api" Version="1.15.3" />
+        <PackageReference Include="OpenTelemetry.Api" Version="1.19.1" />
     </ItemGroup>
 
 </Project>
