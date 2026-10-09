@@ -138,6 +138,21 @@ if have dotnet && [ -d "$APPHOST" ]; then
   fi
 fi
 
+# Front end: the publishable key is baked into the browser bundle, so only its prefix class is checked.
+check_frontend_stripe_key() {
+  local envfile="$1" fe_line fe_value
+  [ -f "$envfile" ] || return 0
+  fe_line="$(grep '^VITE_STRIPE_PUBLISHABLE_KEY=' "$envfile" 2>/dev/null | head -1)"
+  fe_value="${fe_line#*=}"
+  fe_value="$(printf '%s' "$fe_value" | tr -d '\r"'"'"' ')"
+  case "$fe_value" in
+    pk_test_*) pass "frontend .env.local VITE_STRIPE_PUBLISHABLE_KEY is a TEST key (pk_test_...)" ;;
+    pk_live_*) fail "frontend .env.local VITE_STRIPE_PUBLISHABLE_KEY is a LIVE key: test mode only" ;;
+    *)         warn "frontend .env.local VITE_STRIPE_PUBLISHABLE_KEY is missing or does not start with pk_test_" ;;
+  esac
+}
+check_frontend_stripe_key "$ROOT/frontend/GameStore.Frontend/.env.local"
+
 section "Repository"
 if git -C "$ROOT" diff --quiet && git -C "$ROOT" diff --cached --quiet; then
   pass "working tree has no uncommitted changes to tracked files"
