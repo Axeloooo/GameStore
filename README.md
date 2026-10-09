@@ -126,7 +126,7 @@ dotnet test backend/Backend.sln                     # unit and integration tests
 | Job | What it checks |
 | --- | --- |
 | Backend build and unit tests | `dotnet build backend/Backend.sln` and the unit tests. |
-| Backend integration tests | The integration tests, with Docker on the runner. Logs in to Docker Hub first when the `DOCKERHUB_USERNAME` and `DOCKERHUB_TOKEN` repository secrets exist, to avoid the anonymous pull rate limit (see [architecture](docs/architecture.md#docker-hub-login-in-the-integration-tests-job)). |
+| Backend integration tests | The integration tests, with Docker on the runner. The container images are pulled first, with retries, from Google's Docker Hub mirror (`mirror.gcr.io`) and `mcr.microsoft.com`; Docker Hub is only a fallback, with a best-effort login when the optional `DOCKERHUB_USERNAME` and `DOCKERHUB_TOKEN` repository secrets exist (see [architecture](docs/architecture.md#container-images-in-the-integration-tests-job)). |
 | Front end lint and build | `npm ci`, `npm run lint` and `npm run build` in `frontend/`. |
 | Commit messages | Pull requests only: every commit message is checked with commitlint against [`.commitlintrc.json`](.commitlintrc.json). |
 
