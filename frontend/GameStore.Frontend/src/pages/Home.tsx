@@ -78,7 +78,11 @@ const Home: React.FC = () => {
       ) : (
         <>
           {gamesPage.data.length === 0 && (
-            <p className="mt-4">No games match your search. Try a different name.</p>
+            searchParams.get('name') ? (
+              <p className="mt-4">No games match your search. Try a different name.</p>
+            ) : (
+              <p className="mt-4">The shelves are empty right now. Please check back soon.</p>
+            )
           )}
           <div className="row row-cols-1 row-cols-md-5 mt-3">
             {gamesPage.data.map((game) => (
