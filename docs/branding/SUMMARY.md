@@ -6,7 +6,7 @@ Phase 1 proposal by Kestrel (saved by the orchestrator). Nothing in the code has
 
 ## Recommendation (Kestrel, before the committee vote)
 
-**Name: Shelfplay. Direction: B, "The curated shelf".** (See assets/b-shelfplay/logo-600.png.)
+**Name: Shelfplay. Direction: B, "The curated shelf".**
 
 Why:
 - **It fits what the product is.** A small, hand-picked catalogue of digital games with an honest checkout. "Curated shelf" makes a small catalogue a feature instead of a gap.
@@ -33,4 +33,4 @@ Direction A (Quarterhall, a neon arcade) is the strongest mood of the three. It 
 
 ## What exists now
 - NAMING.md, DIRECTIONS.md and this file.
-- assets/a-quarterhall/, assets/b-shelfplay/ and assets/c-lootlark/. Each folder has the mark, the logo in colour, one-colour and reversed versions, a palette sheet, a hero mock and a product card mock as SVG, plus PNG renders at 600, 64 and 32 px.
+- assets/c-lootlark/. The folder has the mark, the logo in colour, one-colour and reversed versions, a palette sheet, a hero mock and a product card mock as SVG, plus PNG renders at 600, 64 and 32 px.
