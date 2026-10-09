@@ -37,6 +37,7 @@ yamllint -d '{extends: relaxed, rules: {new-lines: disable, line-length: disable
 - Still ask the owner first for: cloud spend or provisioning, deleting remote branches or data, merges to `main`, anything outside the repository, bot checks or CAPTCHAs, logins and signing prompts.
 - Never commit secrets or cloud identifiers: Azure subscription/tenant/resource IDs, ACR names, Container App FQDNs, connection strings, Stripe keys (`sk_`, `pk_`, `whsec_`). Committed config holds `[... HERE]` or `<placeholder>` values; real values go in .NET user-secrets, shell environment variables or git-ignored files (`.env.local`).
 - Do not provision cloud resources. Cloud steps live in `docs/runbooks/` as parameterised commands; extend a runbook instead of running the commands. The ordered Azure deployment checklist is `docs/deployment.md`; `scripts/deploy-preflight.sh` is read-only (checks tools, logins and secret key prefixes, prints no subscription names, IDs or secret values) and is safe to run. Only run `azd up`, `azd provision`, `azd deploy` or `azd down` when the repository owner explicitly asks.
+- Deployment: not part of normal work. If it ever happens it is triggered only by the owner merging `devel` into `main` (the Azure DevOps pipeline triggers on `main` only, with `pr: none` and a Deploy condition on `refs/heads/main`); agents never merge to `main` and never run azd up/provision/deploy/down.
 - Stripe is test mode only. A live key (`sk_live_`) must never be used or stored.
 
 ## Editing course-derived code
@@ -50,7 +51,7 @@ yamllint -d '{extends: relaxed, rules: {new-lines: disable, line-length: disable
   4. `backend/README.md` keeps the scrubbed placeholders (`<acr-name>`, `<subscription-id>`, `<container-app-fqdn>`); the course versions contain real IDs. Never copy a course `.azure/` folder.
   5. `backend/tests/scripts/create_slicing_filter_condition.sh` uses LF line endings (the course ships CRLF, which breaks under bash).
   6. `backend/src/GameStore.Api/GameStore.Api.csproj` exposes internals to `GameStore.IntegrationTests` and `GameStore.Api.UnitTests`.
-  7. `backend/.azdo/pipelines/azure-dev.yml` is adapted to the monorepo (trigger `devel` filtered to `backend/*`, `backend/Backend.sln` and `backend/tests/...` paths, `workingDirectory: backend` on both `AzureCLI@2` azd tasks); the course file assumes the solution at the repository root and trigger `main`.
+  7. `backend/.azdo/pipelines/azure-dev.yml` is adapted to the monorepo (trigger `main` only, filtered to `paths: backend/*`, `pr: none`, and a Deploy job condition on `refs/heads/main`; `backend/Backend.sln` and `backend/tests/...` paths, `workingDirectory: backend` on both `AzureCLI@2` azd tasks); the course file assumes the solution at the repository root and trigger `main`.
 - The unit test project (`backend/tests/GameStore.Api.UnitTests`) is original work, not a course tree: xUnit 2.4.2, FluentAssertions 6.12.0 (the course's versions), NSubstitute, Moq, EF Core InMemory. Keep tests deterministic and Docker-free; Docker-dependent tests belong in `GameStore.IntegrationTests`.
 
 ## Local-only files

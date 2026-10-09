@@ -1,11 +1,13 @@
-# Run when commits are pushed to devel (changes under backend/ only)
+# Deploy only when the owner merges devel into main (changes under backend/ only); never on PRs or other branches
 trigger:
   branches:
     include:
-      - devel
+      - main
   paths:
     include:
       - backend/*
+
+pr: none
 
 pool:
   vmImage: ubuntu-latest
@@ -77,6 +79,7 @@ jobs:
   - job: Deploy
     displayName: Deploy
     dependsOn: ParallelTesting
+    condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
 
     steps:
       # setup-azd@1 needs to be manually installed in your organization
