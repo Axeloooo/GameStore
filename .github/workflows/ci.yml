@@ -111,3 +111,34 @@ jobs:
 
       - name: Build
         run: npm run build
+
+  commits:
+    name: Commit messages
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      COMMITLINT_VERSION: 21.2.3
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+
+      - name: Install commitlint
+        run: npm install --no-save --no-audit --no-fund --prefix "$RUNNER_TEMP/commitlint" "@commitlint/cli@$COMMITLINT_VERSION"
+
+      - name: Lint the pull request commits
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          "$RUNNER_TEMP/commitlint/node_modules/.bin/commitlint" \
+            --config .commitlintrc.json \
+            --from "$BASE_SHA" \
+            --to "$HEAD_SHA" \
+            --verbose
