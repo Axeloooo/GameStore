@@ -89,6 +89,10 @@ Short explanations of the tools, services and ideas used in this project, with w
 | **Dead-letter queue (DLQ)** | A side queue for messages that cannot be processed. | Messages without a `MessageType` go to the DLQ, which `OrdersDeadLetterQueueProcessor` logs. |
 | **Eventual consistency** | The state settles shortly after, not within the request. | A paid order is `Processing` until the worker marks it `Completed`. |
 | **Run mode vs publish mode** | Aspire's two ways of running the AppHost: local development vs generating Azure resources. | See [AppHost](#build-run-and-deploy-tools). |
+| **Design tokens** | Named values for colours, fonts, corner radius and shadows, kept in one place (CSS custom properties) so the whole UI changes together. | `frontend/GameStore.Frontend/src/styles/lootlark-tokens.css` holds the Lootlark tokens and maps them onto Bootstrap's variables. The accent yellow is a fill only; text uses the darker `--brand-accent-text`. |
+| **`data-bs-theme`** | A Bootstrap 5.3 HTML attribute (`light` or `dark`) that switches every Bootstrap colour variable below that element to the matching theme. | The tokens file defines both a light and a dark set. The app is light only today (the old dark navbar attribute was removed); setting `data-bs-theme="dark"` on `<html>` would switch it. |
+| **Self-hosted fonts (Fontsource)** | Fontsource packages font files on npm, so the app serves them itself instead of loading them from a third-party font site. Both fonts used here are under the SIL Open Font License. | `@fontsource-variable/baloo-2` (headings) and `@fontsource-variable/nunito-sans` (text), imported in `main.tsx`, with `font-display: swap` so text shows at once in a fallback font. |
+| **Contrast ratio (WCAG)** | A number from 1 to 21 comparing the brightness of text and its background. Text needs at least 4.5; focus outlines and large UI parts need at least 3. | The brand pairs are listed in [branding/DIRECTIONS.md](branding/DIRECTIONS.md); the front end uses a solid 2px focus outline checked against it. |
 
 ## Project conventions
 
