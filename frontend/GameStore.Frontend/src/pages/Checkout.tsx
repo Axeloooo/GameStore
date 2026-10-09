@@ -22,7 +22,7 @@ const CheckoutForm: React.FC = () => {
     const checkoutState = useCheckout();
 
     if (checkoutState.type === 'error') {
-        return <StatusAlert variant="danger">{checkoutState.error.message}</StatusAlert>;
+        return <StatusAlert variant="danger">We could not load the payment form. Nothing was charged. Please try again.</StatusAlert>;
     }
 
     if (checkoutState.type === 'loading') {
@@ -42,7 +42,7 @@ const CheckoutForm: React.FC = () => {
         // confirming the payment. Otherwise, your customer will be redirected to
         // your `return_url`.
         if (confirmResult.type === 'error') {
-            setMessage(confirmResult.error.message);
+            setMessage('We could not complete your payment. Please check your details and try again.');
         }
 
         setIsLoading(false);
