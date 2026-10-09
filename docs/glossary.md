@@ -24,7 +24,7 @@ Short explanations of the tools, services and ideas used in this project, with w
 | **SDK container publishing** | `dotnet publish /t:PublishContainer` builds a container image without a Dockerfile. | `GameStore.Api.csproj` still names the image `gamestore-api` (`ContainerRepository`, from the course); the local run does not build images. |
 | **Vite** | The frontend dev server and build tool. `VITE_*` variables are baked into the bundle at build time. | `frontend`; dev server on http://localhost:5173; settings in `.env.local` (see `.env.example`). |
 | **Mermaid** | Text-based diagrams that GitHub renders in Markdown. | The diagrams in `docs/architecture.md` and the root `README.md`. |
-| **nvm and `.nvmrc`** | nvm (Node Version Manager) switches between Node.js versions; `.nvmrc` names the version a project expects. | [`.nvmrc`](../.nvmrc) pins Node.js 22; `nvm use` picks it up and CI reads it too. |
+| **nvm** | nvm (Node Version Manager) installs and switches between Node.js versions on your machine. | Optional: use it to run Node 22, the version CI uses (see [`.github/workflows/ci.yml`](../.github/workflows/ci.yml)). |
 
 ## Continuous integration and commits
 
@@ -106,5 +106,5 @@ The project runs locally, but the course code uses Azure client libraries, and s
 | --- | --- | --- |
 | **Course-derived code ("Approach C")** | Each .NET Academy course's final tree was copied in verbatim instead of being ported or restyled. | Keeps the repo comparable to the course; intentional deviations are listed in [CLAUDE.md](../CLAUDE.md). |
 | **Placeholder (`[... HERE]` / `<name>`)** | A stand-in for a real value that must never be committed. | Committed config and docs. Real values go in user-secrets, shell variables or git-ignored files. |
-| **Local-only files** | Files git ignores. | `.claude/`, `courses/`, `docs/superpowers/`, `backend/.stripe/`, `frontend/.env.local`. |
+| **Local-only files** | Files git ignores. | `.claude/`, `backend/.stripe/`, `frontend/.env.local`. |
 | **Merge gate** | The rule that decides when a pull request may be merged without a human clicking merge: every required reviewer agent approved the current head commit and CI is green. | See the merging rules in [CLAUDE.md](../CLAUDE.md). |

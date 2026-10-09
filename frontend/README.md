@@ -5,7 +5,7 @@ This README explains how to configure and run the Lootlark front end (the GameSt
 ## 1. Install Node.js
 Download and install Node.js from the official website: https://nodejs.org/en/download
 
-This project uses **v22.x**, pinned in the repository's [`.nvmrc`](../.nvmrc) (`nvm use` picks it up).
+This project uses **v22.x**, the version CI uses (see [`.github/workflows/ci.yml`](../.github/workflows/ci.yml)).
 
 ## 2. Start the back end
 The front end needs the GameStore API and Keycloak. From the repository root, start them with the Aspire AppHost:
