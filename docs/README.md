@@ -8,7 +8,7 @@ Where to find what. Start with the [project README](../README.md) for an overvie
 | Run and configure the app locally, or fix a local problem | [local-development.md](local-development.md) |
 | Understand how the system is built (context, topology, flows, data model, security, CI) | [architecture.md](architecture.md) |
 | Look up what a tool or concept is (Aspire, outbox, Testcontainers, commitlint, ...) | [glossary.md](glossary.md) |
-| See the product name, brand direction, logo and design tokens | [branding/SUMMARY.md](branding/SUMMARY.md) |
+| See the product name, brand direction, logo and design tokens | [branding/README.md](branding/README.md) |
 | Set up or run the React front end | [frontend/README.md](../frontend/README.md) |
 | Work on the code with Claude Code (commands, conventions, intentional deviations) | [../CLAUDE.md](../CLAUDE.md) |
 | Open a pull request | [../.github/pull_request_template.md](../.github/pull_request_template.md) |
@@ -20,7 +20,7 @@ Where to find what. Start with the [project README](../README.md) for an overvie
 | [local-development.md](local-development.md) | Prerequisites, secrets and parameters, the local services, Keycloak users, the payment flow, Entra as an alternative, cleanup and troubleshooting. |
 | [architecture.md](architecture.md) | System design with Mermaid diagrams. |
 | [glossary.md](glossary.md) | Tools, services and concepts in plain words, with where the project uses them. |
-| [branding/](branding/SUMMARY.md) | The Lootlark brand: [SUMMARY.md](branding/SUMMARY.md), [DIRECTIONS.md](branding/DIRECTIONS.md) and [NAMING.md](branding/NAMING.md). |
+| [branding/](branding/README.md) | The Lootlark brand guide: decision, palette, type, logo files and voice. |
 
 ## Keeping the documentation current
 
