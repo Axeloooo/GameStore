@@ -4,6 +4,7 @@ import GamesClient from '../../clients/GamesClient';
 import GenresClient from '../../clients/GenresClient';
 import { GameDetails } from '../../models/GameDetails';
 import { Genre } from '../../models/Genre';
+import StatusAlert from '../../components/StatusAlert';
 import { useAuth } from 'react-oidc-context';
 
 const EditGame: React.FC = () => {
@@ -107,9 +108,7 @@ const EditGame: React.FC = () => {
   if (loadingErrorList.length > 0) {
     return <div>
       {loadingErrorList.map((error, index) => (
-        <div key={index} className="mt-3 text-danger">
-          <em>{error}</em>
-        </div>
+        <StatusAlert key={index} variant="danger" className="mt-3">{error}</StatusAlert>
       ))}
     </div>
   }
@@ -124,9 +123,7 @@ const EditGame: React.FC = () => {
       {errorList.length > 0 && (
         <div className="modal-body mt-3">
           {errorList.map((error, index) => (
-            <div key={index} className="alert alert-danger">
-              {error}
-            </div>
+            <StatusAlert key={index} variant="danger">{error}</StatusAlert>
           ))}
         </div>
       )}

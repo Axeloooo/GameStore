@@ -1,6 +1,8 @@
-# GameStore
+# Lootlark (repository: GameStore)
 
-GameStore is a full-stack video game store: an ASP.NET Core API with a background worker, orchestrated locally with .NET Aspire, and a React front end. It was built by following the [.NET Academy](https://learn.dotnetacademy.io) .NET 8 bootcamp, and the course code is kept as close to the course's final trees as possible.
+Lootlark is the product name of this project; the repository and the code keep the course's `GameStore.*` names (projects, namespaces, API routes, the Keycloak realm and the Stripe setup are unchanged). Brand decisions, assets and the naming record are in [docs/branding/](docs/branding/SUMMARY.md).
+
+Lootlark is a full-stack video game store: an ASP.NET Core API with a background worker, orchestrated locally with .NET Aspire, and a React front end. It was built by following the [.NET Academy](https://learn.dotnetacademy.io) .NET 8 bootcamp, and the course code is kept as close to the course's final trees as possible.
 
 ## Documentation
 

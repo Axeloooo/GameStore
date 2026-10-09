@@ -4,6 +4,7 @@ import GamesClient from '../clients/GamesClient';
 import { GameSummary } from '../models/GameSummary';
 import { PaginationInfo } from '../models/PaginationInfo';
 import Pagination from '../components/Pagination';
+import StatusAlert from '../components/StatusAlert';
 import "./Home.module.css";
 
 const Home: React.FC = () => {
@@ -49,6 +50,11 @@ const Home: React.FC = () => {
 
   return (
     <div>
+      <section className="py-4">
+        <p className="eyebrow mb-1">Fresh loot just landed</p>
+        <h1 className="display-5">Find it. Grab it. Play it.</h1>
+        <p className="lead text-body-secondary mb-0">Digital game codes, delivered to your order page after you pay.</p>
+      </section>
       <div className="row mt-2">
         <div className="col-sm-4">
           <form id="searchGamesForm" method="post" className="d-flex" role="search" onSubmit={handleSearch}>
@@ -57,8 +63,8 @@ const Home: React.FC = () => {
               type="search"
               value={nameSearch || ''}
               onChange={(e) => setNameSearch(e.target.value)}
-              placeholder="Search store"
-              aria-label="Search"
+              placeholder="Search games"
+              aria-label="Search games"
             />
             <button className="btn btn-outline-primary" type="submit">Search</button>
           </form>
@@ -66,18 +72,27 @@ const Home: React.FC = () => {
       </div>
 
       {error ? (
-        <p className="mt-3 text-danger"><em>{error}</em></p>
+        <StatusAlert variant="danger" className="mt-3">We could not load the games. Please try again.</StatusAlert>
       ) : gamesPage === null || paginationInfo === null ? (
         <p className="mt-3"><em>Loading...</em></p>
       ) : (
         <>
+          {gamesPage.data.length === 0 && (
+            <p className="mt-4">No games match your search. Try a different name.</p>
+          )}
           <div className="row row-cols-1 row-cols-md-5 mt-3">
             {gamesPage.data.map((game) => (
               <div key={game.id} className="col mt-4">
-                <a href={`game/${game.id}`} style={{ textDecoration: 'none' }}>
-                  <div className="card h-100" style={{ transition: 'box-shadow 0.2s ease-in-out' }}>
+                <a href={`game/${game.id}`} className="card-link">
+                  <div className="card h-100">
                     <div className="card-img-container">
-                      <img className="card-img-top" src={game.imageUri} alt="Card image cap" />
+                      {game.imageUri ? (
+                        <img className="card-img-top" src={game.imageUri} alt={`Cover of ${game.name}`} />
+                      ) : (
+                        <div className="cover-placeholder card-img-top" role="img" aria-label={`No cover yet for ${game.name}`}>
+                          {game.name.split(/\s+/).slice(0, 2).map((word) => word.charAt(0).toUpperCase()).join('')}
+                        </div>
+                      )}
                     </div>
                     <div className="card-body">
                       <h5 className="card-title">{game.name}</h5>

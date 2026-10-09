@@ -5,6 +5,7 @@ import OrdersClient from '../../clients/OrdersClient';
 import { OrdersPageDto } from '../../models/OrdersModels';
 import { PaginationInfo } from '../../models/PaginationInfo';
 import Pagination from '../../components/Pagination';
+import StatusAlert from '../../components/StatusAlert';
 
 const Orders: React.FC = () => {
     const [searchParams] = useSearchParams();
@@ -69,9 +70,7 @@ const Orders: React.FC = () => {
             <div className="container">
                 <title>Your Orders</title>
                 <h3 className="mt-4 mb-4">Your Orders</h3>
-                <div className="alert alert-danger">
-                    <strong>Error:</strong> {error}
-                </div>
+                <StatusAlert variant="danger">{error}</StatusAlert>
             </div>
         );
     }
@@ -84,12 +83,12 @@ const Orders: React.FC = () => {
             {ordersPage && paginationInfo ? (
                 <>
                     {ordersPage.data.length === 0 ? (
-                        <p>You have no orders.</p>
+                        <p>You have no orders yet. When you buy a game, it will show up here.</p>
                     ) : (
                         <>
                             {ordersPage.data.map((order) => (
                                 <div key={order.id}>
-                                    <div className="row border rounded p-3" style={{ backgroundColor: '#f0f2f2' }}>
+                                    <div className="row border rounded p-3" style={{ backgroundColor: 'var(--bs-tertiary-bg)' }}>
                                         <div className="col-md-3">
                                             <p className="mb-0">ORDER PLACED</p>
                                             <p className="mb-0">{formatOrderDate(order.created)}</p>

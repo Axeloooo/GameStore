@@ -1,0 +1,256 @@
+/* Lootlark design tokens for Bootstrap 5.3 (direction C, "Bright and chirpy").
+   Source: docs/branding/DIRECTIONS.md. Loaded after bootstrap.min.css (which comes
+   from the CDN link in index.html), so these values win.
+
+   Rules this file enforces:
+   - The yellow accent is never used as text on a light surface. Use
+     --brand-accent-text (or .text-accent), which is darkened for contrast.
+   - Focus is a solid 2px outline (>= 3:1 against the page and card surfaces),
+     never a translucent ring.
+   - Transitions are switched off under prefers-reduced-motion. */
+
+:root,
+[data-bs-theme="light"] {
+  --brand-font-display: 'Baloo 2 Variable', 'Baloo 2', 'Trebuchet MS', sans-serif;
+  --bs-font-sans-serif: 'Nunito Sans Variable', 'Nunito Sans', system-ui, -apple-system, 'Segoe UI', Arial, sans-serif;
+  --bs-body-font-family: var(--bs-font-sans-serif);
+  --bs-body-line-height: 1.55;
+
+  --bs-primary: #2B4FD8;
+  --bs-primary-rgb: 43, 79, 216;
+  --brand-accent: #FFC83D;
+  --brand-accent-rgb: 255, 200, 61;
+  --brand-accent-text: #8A6200;   /* accent when used as text on light surfaces */
+  --brand-eyebrow-text: #7A5500;  /* small uppercase labels: darker than accent-text */
+  --brand-ink: #1A2140;           /* labels on yellow fills */
+  --bs-success: #137A43;
+  --bs-success-rgb: 19, 122, 67;
+  --bs-warning: #F59E0B;
+  --bs-warning-rgb: 245, 158, 11;
+  --bs-danger: #C8323A;
+  --bs-danger-rgb: 200, 50, 58;
+  --bs-warning-text-emphasis: #8A4B00;
+
+  --bs-body-bg: #F5F7FC;
+  --bs-body-bg-rgb: 245, 247, 252;
+  --bs-body-color: #1A2140;
+  --bs-body-color-rgb: 26, 33, 64;
+  --bs-emphasis-color: #1A2140;
+  --bs-secondary-color: #56607F;
+  --bs-tertiary-bg: #EAEEF9;
+  --bs-border-color: #DDE3F2;
+  --bs-link-color: #2B4FD8;
+  --bs-link-color-rgb: 43, 79, 216;
+  --bs-link-hover-color: #2443B7;
+  --bs-link-hover-color-rgb: 36, 67, 183;
+
+  --bs-border-radius: 16px;
+  --bs-border-radius-lg: 22px;
+  /* Bootstrap draws its focus ring from this colour; kept opaque, see :focus-visible below. */
+  --bs-focus-ring-color: #2B4FD8;
+
+  --brand-surface: #FFFFFF;       /* cards */
+  --brand-focus: #2B4FD8;         /* 6.10:1 on the page, 6.54:1 on white */
+  --brand-shadow: 0 6px 16px rgba(43, 79, 216, .10);
+  --brand-shadow-hover: 0 14px 28px rgba(43, 79, 216, .16);
+  --brand-cover-from: #2B4FD8;    /* on-palette placeholder cover gradient */
+  --brand-cover-to: #1A2140;
+}
+
+[data-bs-theme="dark"] {
+  --bs-primary: #7C9BFF;
+  --bs-primary-rgb: 124, 155, 255;
+  --brand-accent-text: #FFC83D;
+  --brand-eyebrow-text: #FFC83D;
+  --bs-success: #4CD38A;
+  --bs-success-rgb: 76, 211, 138;
+  --bs-danger: #FF7A80;
+  --bs-danger-rgb: 255, 122, 128;
+  --bs-warning-text-emphasis: #F59E0B;
+
+  --bs-body-bg: #0E1324;
+  --bs-body-bg-rgb: 14, 19, 36;
+  --bs-body-color: #E8ECF8;
+  --bs-body-color-rgb: 232, 236, 248;
+  --bs-emphasis-color: #E8ECF8;
+  --bs-secondary-color: #9AA4C4;
+  --bs-tertiary-bg: #182039;
+  --bs-border-color: #232C47;
+  --bs-link-color: #7C9BFF;
+  --bs-link-color-rgb: 124, 155, 255;
+  --bs-link-hover-color: #E8ECF8;
+  --bs-link-hover-color-rgb: 232, 236, 248;
+  --bs-focus-ring-color: #7C9BFF;
+
+  --brand-surface: #182039;
+  --brand-focus: #7C9BFF;         /* 7.03:1 on the page, 6.12:1 on cards */
+  --brand-shadow: 0 6px 16px rgba(0, 0, 0, .35);
+  --brand-shadow-hover: 0 14px 28px rgba(0, 0, 0, .45);
+}
+
+/* Bootstrap compiles button colours from Sass, so --bs-primary alone does not
+   recolour .btn-primary. These rules map the buttons onto the tokens. */
+.btn-primary {
+  --bs-btn-bg: var(--bs-primary);
+  --bs-btn-border-color: var(--bs-primary);
+  --bs-btn-color: #FFFFFF;
+  --bs-btn-hover-bg: #2443B7;
+  --bs-btn-hover-border-color: #2443B7;
+  --bs-btn-hover-color: #FFFFFF;
+  --bs-btn-active-bg: #203BA2;
+  --bs-btn-active-border-color: #203BA2;
+  --bs-btn-active-color: #FFFFFF;
+  --bs-btn-disabled-bg: var(--bs-primary);
+  --bs-btn-disabled-border-color: var(--bs-primary);
+}
+[data-bs-theme="dark"] .btn-primary {
+  --bs-btn-color: #0E1324;
+  --bs-btn-hover-bg: #E8ECF8;
+  --bs-btn-hover-border-color: #E8ECF8;
+  --bs-btn-hover-color: #0E1324;
+  --bs-btn-active-bg: #E8ECF8;
+  --bs-btn-active-color: #0E1324;
+}
+.btn-outline-primary {
+  --bs-btn-color: var(--bs-primary);
+  --bs-btn-border-color: var(--bs-primary);
+  --bs-btn-hover-bg: var(--bs-primary);
+  --bs-btn-hover-border-color: var(--bs-primary);
+  --bs-btn-hover-color: var(--bs-body-bg);
+  --bs-btn-active-bg: var(--bs-primary);
+  --bs-btn-active-color: var(--bs-body-bg);
+}
+
+h1, h2, h3, h4, h5, h6,
+.h1, .h2, .h3, .h4, .h5, .h6,
+.navbar-brand, .display-1, .display-2, .display-3, .display-4, .display-5, .display-6 {
+  font-family: var(--brand-font-display);
+  font-weight: 700;
+}
+
+.navbar {
+  --bs-navbar-brand-color: var(--bs-emphasis-color);
+  --bs-navbar-brand-hover-color: var(--bs-emphasis-color);
+  --bs-navbar-brand-padding-y: .25rem;
+}
+
+.pagination {
+  --bs-pagination-color: var(--bs-link-color);
+  --bs-pagination-hover-color: var(--bs-link-hover-color);
+  --bs-pagination-active-bg: var(--bs-primary);
+  --bs-pagination-active-border-color: var(--bs-primary);
+  --bs-pagination-active-color: #FFFFFF;
+  --bs-pagination-border-radius: var(--bs-border-radius);
+}
+[data-bs-theme="dark"] .pagination {
+  --bs-pagination-active-color: #0E1324;
+}
+
+/* Cards sit on a white (light) or raised (dark) surface above the page colour. */
+.card {
+  --bs-card-bg: var(--brand-surface);
+  --bs-card-border-color: var(--bs-border-color);
+  --bs-card-border-radius: var(--bs-border-radius);
+  --bs-card-inner-border-radius: calc(var(--bs-border-radius) - 1px);
+}
+
+/* Accent colour as text: always the darkened variant on light surfaces. */
+.text-accent {
+  color: var(--brand-accent-text);
+}
+.eyebrow {
+  color: var(--brand-eyebrow-text);
+  font-size: .875rem;
+  font-weight: 700;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+/* Yellow is a fill only, and always carries navy ink. */
+.chip-accent {
+  background: var(--brand-accent);
+  color: var(--brand-ink);
+  border-radius: 999px;
+  padding: .125rem .75rem;
+  font-size: .875rem;
+  font-weight: 600;
+}
+
+/* Placeholder cover for a game without an image: cobalt to navy, white initials (both ends >= 6:1). */
+.cover-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  aspect-ratio: 3 / 4;
+  background: linear-gradient(135deg, var(--brand-cover-from), var(--brand-cover-to));
+  color: #FFFFFF;
+  font-family: var(--brand-font-display);
+  font-size: 2.5rem;
+  font-weight: 800;
+}
+
+/* Focus: a solid 2px outline on links, buttons and form controls. Bootstrap's own
+   translucent box-shadow rings are removed so the outline is the one focus signal. */
+a:focus-visible,
+button:focus-visible,
+summary:focus-visible,
+[tabindex]:focus-visible,
+.btn:focus-visible,
+.btn-check:focus-visible + .btn,
+.nav-link:focus-visible,
+.dropdown-item:focus-visible,
+.page-link:focus,
+.navbar-toggler:focus,
+.form-control:focus,
+.form-select:focus,
+.form-check-input:focus,
+.btn-close:focus {
+  outline: 2px solid var(--brand-focus);
+  outline-offset: 2px;
+  box-shadow: none;
+}
+
+/* Interactive cards: lift and a blue-tinted shadow. */
+.card-link {
+  display: block;
+  height: 100%;
+  border-radius: var(--bs-border-radius);
+  color: inherit;
+  text-decoration: none;
+}
+.card-link .card {
+  box-shadow: var(--brand-shadow);
+  transition: transform .18s ease, box-shadow .18s ease;
+}
+.card-link:hover .card,
+.card-link:focus-visible .card {
+  transform: translateY(-4px);
+  box-shadow: var(--brand-shadow-hover);
+}
+.card-link:hover .card-title {
+  color: var(--bs-link-color);
+}
+
+/* Alerts: icon + text, never colour alone. */
+.status-alert {
+  display: flex;
+  align-items: flex-start;
+  gap: .75rem;
+}
+.status-alert svg {
+  flex: none;
+  margin-top: .15rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition: none !important;
+    animation: none !important;
+    scroll-behavior: auto !important;
+  }
+  .card-link:hover .card,
+  .card-link:focus-visible .card {
+    transform: none;
+  }
+}

@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from 'react-oidc-context';
 import { useBasket } from '../context/BasketContext';
 import { CommandResult } from '../models/CommandResult';
 import { BasketItem } from '../models/BasketItem';
 import { getUserId } from '../utils/authUtils';
+import StatusAlert from '../components/StatusAlert';
 
 const Cart: React.FC = () => {
     const navigate = useNavigate();
@@ -42,10 +43,10 @@ const Cart: React.FC = () => {
 
     return (
         <div>
-            <h3 className="mt-4 mb-4">My Cart</h3>
+            <h3 className="mt-4 mb-4">Your cart</h3>
 
             {errorList.length > 0 && errorList.map((error, index) => (
-                <div key={index} className="alert alert-danger">{error}</div>
+                <StatusAlert key={index} variant="danger">{error}</StatusAlert>
             ))}
 
             <div className="row">
@@ -99,7 +100,11 @@ const Cart: React.FC = () => {
                     ) : basket ? (
                         <>
                             {basket.items.length === 0 ? (
-                                <h4>Your Cart is empty.</h4>
+                                <div>
+                                    <h4>Your nest is empty.</h4>
+                                    <p>Let's find something fun to put in it.</p>
+                                    <Link className="btn btn-primary" to="/">Browse games</Link>
+                                </div>
                             ) : (
                                 basket.items.map((item: BasketItem) => (
                                     <div key={item.id} className="card rounded-3 mb-4">
@@ -129,8 +134,9 @@ const Cart: React.FC = () => {
                                                         type="button"
                                                         className="btn btn-link text-danger"
                                                         onClick={() => handleRemoveItem(item.id)}
+                                                        aria-label={`Remove ${item.name} from cart`}
                                                     >
-                                                        <i className="bi bi-trash3-fill fs-3"></i>
+                                                        <i className="bi bi-trash3-fill fs-3" aria-hidden="true"></i>
                                                     </button>
                                                 </div>
                                             </div>

@@ -1,4 +1,4 @@
-# Game Store React Front-End
+# Lootlark React Front-End (GameStore)
 
 This README provides instructions to configure and run the Game Store React front-end with either Keycloak or Entra ID as your identity provider.
 

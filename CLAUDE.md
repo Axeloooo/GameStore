@@ -4,7 +4,7 @@ Guidance for Claude Code when working in this repository. See [README.md](README
 
 ## What this repo is
 
-GameStore: an ASP.NET Core API + worker (`backend/`) orchestrated by .NET Aspire, and a React/Vite front end (`frontend/`). The code follows the .NET Academy .NET 8 bootcamp. Each course's final tree was copied in verbatim ("replace, don't port"), so the code deliberately keeps the course's naming (`GameStore.*`), structure and style.
+GameStore: an ASP.NET Core API + worker (`backend/`) orchestrated by .NET Aspire, and a React/Vite front end (`frontend/`). The code follows the .NET Academy .NET 8 bootcamp. Each course's final tree was copied in verbatim ("replace, don't port"), so the code deliberately keeps the course's naming (`GameStore.*`), structure and style. The user-facing product brand is **Lootlark** (UI copy, README title, docs; see `docs/branding/`); the repository name, `GameStore.*` namespaces, API routes and cloud/identity names do not change.
 
 ## Documentation upkeep
 

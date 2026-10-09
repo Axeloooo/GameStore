@@ -6,6 +6,7 @@ import GamesClient from '../clients/GamesClient';
 import { GameDetails } from '../models/GameDetails';
 import { BasketItem } from '../models/BasketItem';
 import { CommandResult } from '../models/CommandResult';
+import StatusAlert from '../components/StatusAlert';
 
 const Game: React.FC = () => {
     const { id } = useParams<{ id: string }>();
@@ -77,7 +78,7 @@ const Game: React.FC = () => {
             ) : (
                 <>
                     {errorList.length > 0 && errorList.map((error, index) => (
-                        <div key={index} className="alert alert-danger">{error}</div>
+                        <StatusAlert key={index} variant="danger">{error}</StatusAlert>
                     ))}
 
                     <div className="row mt-4">
@@ -89,13 +90,13 @@ const Game: React.FC = () => {
                             <p className="mt-3">{game.description}</p>
                             <p className="display-4 font-weight-bold">${game.price}</p>
                             {basket && basket.items.some(item => item.id === game.id) ? (
-                                <a href="/cart" className="btn btn-primary">View in Cart</a>
+                                <a href="/cart" className="btn btn-primary">View in your cart</a>
                             ) : (
                                 <form onSubmit={handleSubmit}>
-                                    <button type="submit" className="btn btn-primary">Add to Cart</button>
+                                    <button type="submit" className="btn btn-primary" aria-label={`Add ${game.name} to cart`}>Grab it</button>
                                 </form>
                             )}
-                            <p className="text-secondary mt-3">
+                            <p className="text-body-secondary mt-3">
                             Release Date: {new Date(game.releaseDate).toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric', timeZone: 'UTC' })}
                             </p>
                         </div>

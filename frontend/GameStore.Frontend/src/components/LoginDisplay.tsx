@@ -27,7 +27,7 @@ const LoginDisplay: React.FC = () => {
             {auth.isAuthenticated ? (
                 <div className="dropdown">
                     <a
-                        className="link-light text-decoration-none dropdown-toggle"
+                        className="link-body-emphasis text-decoration-none dropdown-toggle"
                         href="#"
                         id="dropdownMenuLink"
                         data-bs-toggle="dropdown"
@@ -35,14 +35,14 @@ const LoginDisplay: React.FC = () => {
                     >
                         <img
                             src={auth.user ? getImageUrl(auth.user.profile.email) : undefined}
-                            alt="user"
+                            alt="Your account"
                             width="32"
                             height="32"
                             className="rounded-circle"
                         />
                     </a>
                     <ul
-                        className="dropdown-menu dropdown-menu-dark dropdown-menu-end"
+                        className="dropdown-menu dropdown-menu-end"
                         aria-labelledby="dropdownMenuLink"
                     >
                         <li>
@@ -63,9 +63,9 @@ const LoginDisplay: React.FC = () => {
                     </ul>
                 </div>
             ) : (
-                <a onClick={() => auth.signinRedirect()} className="btn btn-warning">
-                    Login
-                </a>
+                <button type="button" onClick={() => auth.signinRedirect()} className="btn btn-primary">
+                    Log in
+                </button>
             )}
         </div>
     );
