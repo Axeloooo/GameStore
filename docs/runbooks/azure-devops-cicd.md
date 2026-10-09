@@ -1,6 +1,6 @@
 # Runbook: Azure DevOps CI/CD (deferred cloud chapters)
 
-Order: Local validation, repo-layout fix, then cloud steps 0-10. Bash/zsh. Replace every `<placeholder>`; never commit real values.
+Order: Local validation, repo-layout fix (already applied), then cloud steps 0-10. Bash/zsh. Replace every `<placeholder>`; never commit real values.
 Pipeline: `backend/.azdo/pipelines/azure-dev.yml` (jobs Build -> ParallelTesting x2 -> Deploy). azd project: `backend/azure.yaml` (service `app` -> `src/GameStore.AppHost`).
 Prereqs: `az` (>= 2.50) with the `azure-devops` extension, `azd`, .NET 8 SDK, Docker, an Azure subscription where you can create app registrations and assign roles (Owner or Contributor + User Access Administrator, because azd/Aspire creates role assignments), the earlier runbooks' Entra values, a Stripe TEST key.
 
@@ -28,15 +28,17 @@ dotnet $DLL --filter-method "<name1> <name2> ..."
 Notes: the script sets `targetTestsFilter` with `##vso[task.setvariable]`, consumed by the step `Run tests` as `$(targetTestsFilter)`. Agents get tests round-robin (agent 1: 1,3,5..; agent 2: 2,4,6..). The script is committed with LF endings (was CRLF in the course zip; a CRLF `#!/bin/bash\r` breaks on ubuntu agents). Keep it LF: `sed -i '' 's/\r$//' backend/tests/scripts/create_slicing_filter_condition.sh` (macOS; GNU: drop the `''`) and mark `*.sh text eol=lf` in `.gitattributes` if the repo gains one.
 
 ## Repo-layout fix (the .NET solution lives in `backend/`)
-The course pipeline assumes the solution, `tests/`, `azure.yaml` are at the repo root and `.azdo/` at `<repo>/.azdo`. Here they are under `backend/`. Without changes: `DotNetCoreCLI@2 build`'s default `projects` glob would pick up every csproj under `backend/` individually (rather than the solution), and the `publish:` paths and `azd` still assume the repo-root layout, so set `projects: 'backend/Backend.sln'` explicitly; both `publish:` paths do not exist at the root; `azd` finds no `azure.yaml`.
+Status: Option A is applied in `backend/.azdo/pipelines/azure-dev.yml`. The explanation below is kept for reference.
 
-Option A (recommended): keep the monorepo and edit the pipeline (documentation only, not applied in this repo):
+The course pipeline assumed the solution, `tests/`, `azure.yaml` are at the repo root and `.azdo/` at `<repo>/.azdo`. Here they are under `backend/`. Without changes: `DotNetCoreCLI@2 build`'s default `projects` glob would pick up every csproj under `backend/` individually (rather than the solution), and the `publish:` paths and `azd` still assume the repo-root layout, so set `projects: 'backend/Backend.sln'` explicitly; both `publish:` paths do not exist at the root; `azd` finds no `azure.yaml`.
+
+Option A (applied): keep the monorepo and edit the pipeline. The diff the pipeline file now carries (the trigger uses `devel`):
 ```diff
 -trigger:
 -  - main
 +trigger:
 +  branches:
-+    include: [main]          # change to devel if that is your integration branch
++    include: [devel]
 +  paths:
 +    include: [backend/*]
 @@ Build
@@ -64,10 +66,10 @@ Option A (recommended): keep the monorepo and edit the pipeline (documentation o
 - `workingDirectory: backend` (AzureCLI@2 input) is the pipeline equivalent of `cd backend`; alternatively put `cd backend` first in each `inlineScript`.
 - `ParallelTesting` needs no change: it uses `checkout: none` and downloads the artifacts to `$(Pipeline.Workspace)/TestBinaries|TestScripts`.
 - The Build job's `Run unit tests` step (`DotNetCoreCLI@2 test`) also needs the prefix: `projects: 'backend/tests/GameStore.Api.UnitTests/GameStore.Api.UnitTests.csproj'`.
-- The `trigger: - main` branch filter does not match this repo's default branch `devel`; pick the real branch.
+- The course `trigger: - main` branch filter did not match this repo's default branch `devel`; the applied file triggers on `devel`, so the repository the pipeline reads must have a `devel` branch.
 - Path to the YAML when creating the pipeline becomes `backend/.azdo/pipelines/azure-dev.yml` (step 6).
 
-Option B: import `backend/` as the root of a dedicated repo (e.g. `git subtree split -P backend -b backend-only`, push that branch as `main` of `<repo-name>`). Then the pipeline works unchanged and the YAML path is `.azdo/pipelines/azure-dev.yml`. Loses history linkage with the monorepo.
+Option B: import `backend/` as the root of a dedicated repo (e.g. `git subtree split -P backend -b backend-only`, push that branch as `main` of `<repo-name>`). Then the original course pipeline works unchanged (the edited file in this repo would need its `backend/` prefixes and `paths` filter reverted) and the YAML path is `.azdo/pipelines/azure-dev.yml`. Loses history linkage with the monorepo.
 
 Also required on Linux agents: the Bicep file name must match the AppHost reference (`backend/src/GameStore.AppHost/bicep/frontdoor.bicep`; renamed in this PR). Case mismatch breaks `azd provision` on ubuntu.
 
@@ -93,7 +95,7 @@ Azure Repos (push the monorepo):
 ```bash
 az repos create --name <repo-name>
 git remote add azdo https://<organization>@dev.azure.com/<organization>/<project>/_git/<repo-name>
-git push azdo <branch>:main
+git push azdo devel:devel
 ```
 or import: `az repos import create --git-source-url https://github.com/<github-owner>/<github-repo>.git --repository <repo-name>` (private source: add `--requires-authorization --user-name <user> --password <pat>`).
 GitHub-hosted code instead: Project settings > Service connections > New > GitHub (OAuth or the Azure Pipelines GitHub App), then use `--repository <github-owner>/<github-repo> --repository-type github --service-connection <github-service-connection>` in step 6.
@@ -158,12 +160,12 @@ Important: secret variables are NOT exposed to scripts automatically; the YAML m
 ## 6. Create the pipeline
 ```bash
 az pipelines create --name <pipeline-name> --repository <repo-name> --repository-type tfsgit \
-  --branch main --yml-path backend/.azdo/pipelines/azure-dev.yml --skip-first-run true
+  --branch devel --yml-path backend/.azdo/pipelines/azure-dev.yml --skip-first-run true
 ```
 Why: registers the YAML without queuing a run before variables exist. (`--yml-path` is `.azdo/pipelines/azure-dev.yml` under Option B.) Authorize `azconnection` for the pipeline on first run (Permit prompt) if not granted to all pipelines.
 
 ## 7. Triggers, environments, approvals
-- Trigger: `trigger: - main` only (CI on pushes to `main`; no PR trigger, no schedules). See the layout fix about `devel`.
+- Trigger: pushes to `devel` that touch `backend/*` (no PR trigger, no schedules).
 - The YAML uses plain jobs, no `environment:` or `deployment:` jobs, so there are no environment approvals. To add a gate: Pipelines > Environments > New `<environment-name>`, Approvals and checks > Approvals, and change `Deploy` to a `deployment` job with `environment: <environment-name>`; or require approval on the `azconnection` service connection (Approvals and checks) without touching the YAML.
 
 ## 8. Free parallel-jobs grant
@@ -171,7 +173,7 @@ New organizations have 0 free Microsoft-hosted parallel jobs. Request: https://a
 
 ## 9. Run and verify
 ```bash
-az pipelines run --name <pipeline-name> --branch main
+az pipelines run --name <pipeline-name> --branch devel
 az pipelines runs list --pipeline-name <pipeline-name> --top 1 -o table
 az pipelines runs show --id <run-id> --query "{status:status,result:result}"
 ```
@@ -183,7 +185,7 @@ Expected, per job:
 az containerapp list -g <resource-group> -o table
 curl -i https://<container-app-fqdn>/health/ready
 ```
-Common failures: `azconnection` not authorized (Permit on run page); missing variable (`azd` prompts despite `--no-prompt`, fails); role assignment 403 (add User Access Administrator, step 3); no `azure.yaml` (layout fix); `setup-azd@1` unknown task (step 4); `frontdoor.bicep` case mismatch.
+Common failures: `azconnection` not authorized (Permit on run page); missing variable (`azd` prompts despite `--no-prompt`, fails); role assignment 403 (add User Access Administrator, step 3); no `azure.yaml` (the `workingDirectory: backend` input on the azd tasks, see the layout fix); `setup-azd@1` unknown task (step 4); `frontdoor.bicep` case mismatch.
 Clean up: `azd down --force --purge` from `backend/` with the same env (local `azd env` or `AZURE_ENV_NAME`), then delete the project if disposable: `az devops project delete --id <project-id> --yes`.
 
 ## 10. Where each produced setting ends up
@@ -194,4 +196,4 @@ Clean up: `azd down --force --purge` from `backend/` with the same env (local `a
 
 ## Not verifiable from repo/handouts
 - Handouts.pdf is not in the course folder (only `Backend_Start` + zip); README/next-steps are the generic azd ones. Everything here is from the pipeline YAML, `azure.yaml`, the slicing script and general Azure DevOps knowledge.
-- Not verified: `az devops`/`az pipelines`/`az ad` flags and the service-endpoint JSON, marketplace name of the azd extension, parallelism request URL/turnaround, role requirements of `azconnection`, `AZURE_*` to AppHost parameter mapping, Key Vault-linked variable group, the exact test count per slice, success of `azd` non-interactive provisioning, and the suggested diff (not applied or run).
+- Not verified: `az devops`/`az pipelines`/`az ad` flags and the service-endpoint JSON, marketplace name of the azd extension, parallelism request URL/turnaround, role requirements of `azconnection`, `AZURE_*` to AppHost parameter mapping, Key Vault-linked variable group, the exact test count per slice, success of `azd` non-interactive provisioning, and the pipeline run itself (the YAML edits are applied and lint-checked locally, but the pipeline has not been run).

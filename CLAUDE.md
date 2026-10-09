@@ -50,6 +50,7 @@ yamllint -d '{extends: relaxed, rules: {new-lines: disable, line-length: disable
   4. `backend/README.md` keeps the scrubbed placeholders (`<acr-name>`, `<subscription-id>`, `<container-app-fqdn>`); the course versions contain real IDs. Never copy a course `.azure/` folder.
   5. `backend/tests/scripts/create_slicing_filter_condition.sh` uses LF line endings (the course ships CRLF, which breaks under bash).
   6. `backend/src/GameStore.Api/GameStore.Api.csproj` exposes internals to `GameStore.IntegrationTests` and `GameStore.Api.UnitTests`.
+  7. `backend/.azdo/pipelines/azure-dev.yml` is adapted to the monorepo (trigger `devel` filtered to `backend/*`, `backend/Backend.sln` and `backend/tests/...` paths, `workingDirectory: backend` on both `AzureCLI@2` azd tasks); the course file assumes the solution at the repository root and trigger `main`.
 - The unit test project (`backend/tests/GameStore.Api.UnitTests`) is original work, not a course tree: xUnit 2.4.2, FluentAssertions 6.12.0 (the course's versions), NSubstitute, Moq, EF Core InMemory. Keep tests deterministic and Docker-free; Docker-dependent tests belong in `GameStore.IntegrationTests`.
 
 ## Local-only files
@@ -60,4 +61,3 @@ yamllint -d '{extends: relaxed, rules: {new-lines: disable, line-length: disable
 
 - NU1902 vulnerability warnings for `OpenTelemetry.Exporter.OpenTelemetryProtocol` appear on every build.
 - `Aspire.Hosting.Azure.ApplicationInsights` 13.0.0 is mixed with other Aspire packages at 9.5.2.
-- The Azure DevOps pipeline assumes the solution is at the repository root, while it lives in `backend/`; the fix is documented in `docs/runbooks/azure-devops-cicd.md`.

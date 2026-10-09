@@ -1,6 +1,11 @@
-# Run when commits are pushed to main
+# Run when commits are pushed to devel (changes under backend/ only)
 trigger:
-  - main
+  branches:
+    include:
+      - devel
+  paths:
+    include:
+      - backend/*
 
 pool:
   vmImage: ubuntu-latest
@@ -19,19 +24,20 @@ jobs:
         displayName: Build
         inputs:
           command: 'build'
+          projects: 'backend/Backend.sln'
 
       - task: DotNetCoreCLI@2
         displayName: Run unit tests
         inputs:
           command: 'test'
-          projects: 'tests/GameStore.Api.UnitTests/GameStore.Api.UnitTests.csproj'
+          projects: 'backend/tests/GameStore.Api.UnitTests/GameStore.Api.UnitTests.csproj'
           arguments: '--no-build'
 
-      - publish: $(System.DefaultWorkingDirectory)/tests/GameStore.IntegrationTests/bin/Debug/net8.0
+      - publish: $(System.DefaultWorkingDirectory)/backend/tests/GameStore.IntegrationTests/bin/Debug/net8.0
         displayName: Publish Test Binaries
         artifact: TestBinaries
 
-      - publish: $(System.DefaultWorkingDirectory)/tests/scripts
+      - publish: $(System.DefaultWorkingDirectory)/backend/tests/scripts
         displayName: Publish Test Scripts
         artifact: TestScripts
 
@@ -99,6 +105,7 @@ jobs:
           scriptType: bash
           scriptLocation: inlineScript
           keepAzSessionActive: true
+          workingDirectory: backend
           inlineScript: |
             azd provision --no-prompt
         env:
@@ -118,6 +125,7 @@ jobs:
           scriptType: bash
           scriptLocation: inlineScript
           keepAzSessionActive: true
+          workingDirectory: backend
           inlineScript: |
             azd deploy --no-prompt
         env:

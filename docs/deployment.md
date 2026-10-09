@@ -154,7 +154,7 @@ azd up      # BackendUrl, EntraClientId, EntraAuthority, EntraScope, StripePubli
 
 ## Optional: CI/CD and monitoring
 
-- **Azure DevOps pipeline** (`backend/.azdo/pipelines/azure-dev.yml`): the course pipeline assumes the solution is at the repository root, but it lives in `backend/`, and the trigger is `main` while the default branch is `devel`. The fix and the project, service connection, variable and parallel-jobs setup are in the [CI/CD runbook](runbooks/azure-devops-cicd.md).
+- **Azure DevOps pipeline** (`backend/.azdo/pipelines/azure-dev.yml`): adapted to this monorepo (solution in `backend/`, trigger on `devel` for changes under `backend/`, `azd` run from `backend/`). The project, service connection, variable and parallel-jobs setup are in the [CI/CD runbook](runbooks/azure-devops-cicd.md).
 - **Application Insights**: `azd` provisions it and injects `APPLICATIONINSIGHTS_CONNECTION_STRING`; investigation steps and load tests are in the [troubleshooting runbook](runbooks/troubleshooting-azure.md).
 
 ## Teardown
