@@ -61,4 +61,4 @@ yamllint -d '{extends: relaxed, rules: {new-lines: disable, line-length: disable
 
 ## Known issues (left as in the course)
 
-- None open. `dotnet list backend/Backend.sln package --include-transitive --vulnerable` is clean; patched versions of former transitive findings are pinned explicitly in the csproj files (MessagePack, OpenTelemetry.Api, System.Net.Http, System.Text.RegularExpressions) or come from Testcontainers 4.14.0 (SSH.NET).
+- None open. `dotnet list backend/Backend.sln package --include-transitive --vulnerable` is clean; patched versions of former transitive findings are pinned explicitly in the csproj files (MessagePack, OpenTelemetry.Api, SSH.NET, System.Net.Http, System.Text.RegularExpressions).
