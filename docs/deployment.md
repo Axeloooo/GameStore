@@ -35,7 +35,7 @@ Cost warning: the deployment creates billable resources (see [What gets created]
 | Key Vault | backend AppHost (publish mode) | `Stripe--SecretKey`; you add the webhook endpoint secret. |
 | Azure Front Door profile | `bicep/frontdoor.bicep` | CDN in front of blob storage. A main fixed cost. |
 | Application Insights | backend AppHost (publish mode) | Telemetry once the connection string is injected. |
-| `gamestore-frontend` Container App | `frontend/GameStore.Frontend/Dockerfile` | nginx image with the Vite settings baked in at build time (build and push by hand; the frontend AppHost was removed in LRN-283). |
+| `gamestore-frontend` Container App | `frontend/Dockerfile` | nginx image with the Vite settings baked in at build time (build and push by hand; the frontend AppHost was removed in LRN-283). |
 
 Created by hand, outside `azd`: the Microsoft Entra external tenant and its two app registrations (API and SPA), and the Stripe webhook endpoint.
 
@@ -127,7 +127,7 @@ Expect the API revision to be **unhealthy after this first pass**. `StripeOption
 
 ## Phase D: frontend deploy
 
-The Aspire frontend host and `frontend/azure.yaml` were removed in LRN-283, so there is no `azd up` for the frontend. Deployment stays on hold; when it is done, either build the image from `frontend/GameStore.Frontend/Dockerfile` (nginx runtime, Docker build arguments `VITE_BACKEND_API_URL`, `VITE_IDENTITY_PROVIDER`, `VITE_ENTRA_CLIENT_ID`, `VITE_ENTRA_AUTHORITY`, `VITE_ENTRA_SCOPE`, `VITE_STRIPE_PUBLISHABLE_KEY`) and run it as a Container App, or host the built SPA on Azure Static Web Apps using `staticwebapp.config.json` ([first runbook](runbooks/azure-for-dotnet-developers.md)).
+The Aspire frontend host and `frontend/azure.yaml` were removed in LRN-283, so there is no `azd up` for the frontend. Deployment stays on hold; when it is done, either build the image from `frontend/Dockerfile` (nginx runtime, Docker build arguments `VITE_BACKEND_API_URL`, `VITE_IDENTITY_PROVIDER`, `VITE_ENTRA_CLIENT_ID`, `VITE_ENTRA_AUTHORITY`, `VITE_ENTRA_SCOPE`, `VITE_STRIPE_PUBLISHABLE_KEY`) and run it as a Container App, or host the built SPA on Azure Static Web Apps using `staticwebapp.config.json` ([first runbook](runbooks/azure-for-dotnet-developers.md)).
 
 `VITE_BACKEND_API_URL` is `https://<container-app-fqdn>`. The publishable key is a public value baked into the bundle. Note the resulting `<frontend-container-app-fqdn>`.
 
