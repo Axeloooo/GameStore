@@ -1,7 +1,7 @@
 # Runbook: Payments, Queues & Workers (deferred cloud chapters)
 
 Order: Local run, then cloud steps 0-7. Bash/zsh. Replace every `<placeholder>`; never commit real values.
-Backend AppHost: `backend/src/GameStore.AppHost` (projects `gamestore-api`, `gamestore-worker`). Frontend AppHost: `frontend/GameStore.Frontend.AppHost`.
+Backend AppHost: `backend/src/GameStore.AppHost` (projects `gamestore-api`, `gamestore-worker`). The frontend AppHost was removed in LRN-283; the frontend runs with npm.
 Prereqs: Docker running, .NET 8 SDK + Aspire, `az`, `azd`, Node 22, a Stripe account in TEST mode. Reuses the Entra tenant and app registrations from the earlier runbooks (`<entra-api-client-id>`, `<entra-tenant-id>`, `<entra-spa-client-id>`) and the resource group from the containers runbook.
 
 ## Local run
@@ -39,7 +39,7 @@ curl -X POST http://localhost:5082/payments/checkout -H "Authorization: Bearer $
 stripe trigger checkout.session.completed
 ```
 Expected: order status `Completed`, `OutboxMessages` rows processed (pgAdmin http://localhost:5050), and a Worker log line in the Aspire dashboard http://localhost:15054. Note `stripe trigger` creates a generic session without your order metadata, so a real order completes only by paying a session from the front end (test card 4242 4242 4242 4242); confirm in the dashboard logs.
-5. Front end: `frontend/GameStore.Frontend.AppHost/appsettings.json` `Parameters.StripePublishableKey` = `<stripe-test-publishable-key>` (pk_test_ only; use user-secrets), then `dotnet run --project frontend/GameStore.Frontend.AppHost --launch-profile http` (app http://localhost:5173).
+5. Front end (the frontend AppHost step was removed in LRN-283; the frontend now runs with npm): in `frontend/GameStore.Frontend/.env.local` set `VITE_STRIPE_PUBLISHABLE_KEY=<stripe-test-publishable-key>` (pk_test_ only), then `npm ci && npm run dev` (app http://localhost:5173).
 
 Local deviations from the course
 - `backend/src/GameStore.Api/Shared/Stripe/StripeEventFactory.cs` (course 4 moved `ConstructEvent` there; `StripeWebhookEndpoint.cs` now takes `IStripeEventFactory`) calls `EventUtility.ConstructEvent(..., throwOnApiVersionMismatch: false)`. Stripe.net pins API version `2025-09-30.clover`; `stripe listen` forwards events in the account's default version (for example `2022-11-15`; `--latest` gives a newer release, which also mismatches), so without this every webhook returned 400 (`Received event with API version ..., but Stripe.net expects API version 2025-09-30.clover`) and orders stayed `Pending`. The signature is still verified.

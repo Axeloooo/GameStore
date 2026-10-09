@@ -1,7 +1,7 @@
 # Runbook: Containers & Aspire (deferred cloud chapters)
 
 Order: Local run, then cloud steps 0-9. Bash/zsh (course README uses PowerShell variable syntax; converted here). Replace every `<placeholder>`; never commit real values.
-Backend: `backend/src/GameStore.Api` (image repository `gamestore-api`), AppHost `backend/src/GameStore.AppHost`. Frontend: `frontend/GameStore.Frontend`, AppHost `frontend/GameStore.Frontend.AppHost`.
+Backend: `backend/src/GameStore.Api` (image repository `gamestore-api`), AppHost `backend/src/GameStore.AppHost`. Frontend: `frontend/GameStore.Frontend` (its AppHost was removed in LRN-283; see step 9).
 Prereqs: Docker running, .NET 8 SDK + Aspire workload/templates, `az`, `azd`, Node 22. Reuses the Entra external tenant, API app registration and SPA registration from the Azure for .NET Developers runbook (`<entra-api-client-id>`, `<entra-tenant-id>`, `<entra-spa-client-id>`).
 
 ## Local run
@@ -126,6 +126,8 @@ File: `backend/src/GameStore.AppHost/bicep/frontdoor.bicep`. Why: CDN in front o
 - Test: `curl -I https://<frontdoor-hostname>/game-images/<image-file>` (public blob access required; first hit can be slow while the route propagates).
 
 ## 9. Front end with Aspire
+> Removed in LRN-283: `frontend/GameStore.Frontend.AppHost`, `frontend/azure.yaml` and `React-Frontend.sln` no longer exist; the frontend now runs with npm (`cd frontend/GameStore.Frontend && cp .env.example .env.local && npm ci && npm run dev`, see the root README). The text below is the original course lesson, kept for reference. The Parameters table maps to the `VITE_*` variables in `.env.example`.
+
 Project: `frontend/GameStore.Frontend.AppHost`; image built from `frontend/GameStore.Frontend/Dockerfile` (node 22 build, nginx runtime) via `PublishAsDockerFile`.
 Parameters (`appsettings.Development.json` `Parameters`, or `azd` prompts when publishing) and where they land:
 

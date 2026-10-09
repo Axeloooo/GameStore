@@ -52,6 +52,7 @@ yamllint -d '{extends: relaxed, rules: {new-lines: disable, line-length: disable
   5. `backend/tests/scripts/create_slicing_filter_condition.sh` uses LF line endings (the course ships CRLF, which breaks under bash).
   6. `backend/src/GameStore.Api/GameStore.Api.csproj` exposes internals to `GameStore.IntegrationTests` and `GameStore.Api.UnitTests`.
   7. `backend/.azdo/pipelines/azure-dev.yml` is adapted to the monorepo (trigger `main` only, filtered to `paths: backend/*`, `pr: none`, and a Deploy job condition on `refs/heads/main`; `backend/Backend.sln` and `backend/tests/...` paths, `workingDirectory: backend` on both `AzureCLI@2` azd tasks); the course file assumes the solution at the repository root and trigger `main`.
+  8. `frontend/GameStore.Frontend.AppHost`, `frontend/azure.yaml` and `frontend/React-Frontend.sln` were removed on the owner's decision (LRN-283); the frontend runs with npm (`frontend/GameStore.Frontend/.env.example` documents the `VITE_*` settings). Do not bring them back when replacing `frontend/` with a course tree.
 - The unit test project (`backend/tests/GameStore.Api.UnitTests`) is original work, not a course tree: xUnit 2.4.2, FluentAssertions 6.12.0 (the course's versions), NSubstitute, Moq, EF Core InMemory. Keep tests deterministic and Docker-free; Docker-dependent tests belong in `GameStore.IntegrationTests`.
 
 ## Local-only files

@@ -115,7 +115,7 @@ flowchart TB
         afd["Azure Front Door<br/>CDN for images"]
 
         subgraph cae["Container Apps environment"]
-            cspa["gamestore-frontend<br/>Container App, nginx image<br/>built by the frontend AppHost"]
+            cspa["gamestore-frontend<br/>Container App, nginx image<br/>built from the frontend Dockerfile"]
             capi["gamestore-api<br/>Container App, 0 to 10 replicas<br/>liveness and readiness on :8081"]
             cworker["gamestore-worker<br/>Container App"]
         end
@@ -150,7 +150,7 @@ flowchart TB
     capi <--> stripe
 ```
 
-The frontend AppHost (`frontend/GameStore.Frontend.AppHost`) builds the React app into an nginx image with the Vite settings baked in as build arguments and publishes it as its own Container App. The first course also covered hosting the built SPA on Azure Static Web Apps (`staticwebapp.config.json`); that option is described in the [first runbook](runbooks/azure-for-dotnet-developers.md).
+The React app is built from `frontend/GameStore.Frontend/Dockerfile` into an nginx image with the Vite settings baked in as build arguments (the Aspire frontend host was removed in LRN-283; locally the app runs with `npm run dev`, and deployment is on hold). The first course also covered hosting the built SPA on Azure Static Web Apps (`staticwebapp.config.json`); that option is described in the [first runbook](runbooks/azure-for-dotnet-developers.md).
 
 Access to PostgreSQL, Storage, Service Bus and Key Vault goes through a `DefaultAzureCredential` (managed identity via `AZURE_CLIENT_ID`), so no connection secrets are stored. Application Insights is only wired in publish mode and only active when `APPLICATIONINSIGHTS_CONNECTION_STRING` is set.
 
