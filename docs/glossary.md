@@ -106,5 +106,5 @@ The project runs locally, but the course code uses Azure client libraries, and s
 | --- | --- | --- |
 | **Course-derived code ("Approach C")** | Each .NET Academy course's final tree was copied in verbatim instead of being ported or restyled. | Keeps the repo comparable to the course; intentional deviations are listed in [CLAUDE.md](../CLAUDE.md). |
 | **Placeholder (`[... HERE]` / `<name>`)** | A stand-in for a real value that must never be committed. | Committed config and docs. Real values go in user-secrets, shell variables or git-ignored files. |
-| **Local-only files** | Files git ignores. | `.claude/`, `courses/`, `docs/superpowers/`, `backend/.stripe/`, `frontend/.env.local`. |
+| **Local-only files** | Files git ignores. | `.claude/`, `backend/.stripe/`, `frontend/.env.local`. |
 | **Merge gate** | The rule that decides when a pull request may be merged without a human clicking merge: every required reviewer agent approved the current head commit and CI is green. | See the merging rules in [CLAUDE.md](../CLAUDE.md). |

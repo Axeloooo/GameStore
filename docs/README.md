@@ -29,5 +29,3 @@ Where to find what. Start with the [project README](../README.md) for an overvie
 - Change how to run or test the app: update the [README](../README.md) and [local-development.md](local-development.md).
 - Add a document: list it in this index.
 - Never commit real IDs, keys or secrets; use placeholders such as `<tenant-id>` or `[... HERE]`.
-
-`docs/superpowers/` (specs and plans) is local-only and git-ignored.
