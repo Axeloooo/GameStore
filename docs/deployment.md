@@ -35,7 +35,7 @@ Cost warning: the deployment creates billable resources (see [What gets created]
 | Key Vault | backend AppHost (publish mode) | `Stripe--SecretKey`; you add the webhook endpoint secret. |
 | Azure Front Door profile | `bicep/frontdoor.bicep` | CDN in front of blob storage. A main fixed cost. |
 | Application Insights | backend AppHost (publish mode) | Telemetry once the connection string is injected. |
-| `gamestore-frontend` Container App | frontend AppHost (`frontend/`) | nginx image with the Vite settings baked in at build time. |
+| `gamestore-frontend` Container App | `frontend/GameStore.Frontend/Dockerfile` | nginx image with the Vite settings baked in at build time (build and push by hand; the frontend AppHost was removed in LRN-283). |
 
 Created by hand, outside `azd`: the Microsoft Entra external tenant and its two app registrations (API and SPA), and the Stripe webhook endpoint.
 
@@ -49,7 +49,7 @@ flowchart TB
     a["A. Azure + Entra setup<br/>login, providers, API and SPA app registrations"] --> b
     b["B. Backend azd up<br/>AllowedOrigins and CheckoutReturnUrl are placeholders"] --> c
     c["C. Stripe webhook<br/>endpoint to API URL, endpoint secret into Key Vault"] --> d
-    d["D. Frontend azd up<br/>needs BackendUrl, Entra ids, publishable key"] --> e
+    d["D. Frontend image<br/>needs BackendUrl, Entra ids, publishable key"] --> e
     e["E. Finalize<br/>set real AllowedOrigins and CheckoutReturnUrl,<br/>SPA redirect URI, azd deploy backend"] --> f
     f["F. Verify<br/>smoke test with a Stripe test card"]
 ```
@@ -81,10 +81,10 @@ Values to collect up front (all go into prompts, user-secrets or Key Vault, neve
 | --- | --- | --- |
 | Tenant id, subscription id, location | Azure | `azd env set AZURE_SUBSCRIPTION_ID`, `AZURE_LOCATION`; login commands |
 | `<entra-api-client-id>` | API app registration (Phase A) | AppHost parameter `EntraValidAudience` |
-| `https://<entra-tenant-id>.ciamlogin.com/<entra-tenant-id>/v2.0` | Entra external tenant | AppHost parameter `EntraAuthority`; frontend `EntraAuthority` |
-| `<entra-spa-client-id>`, API scope | SPA app registration (Phase A) | Frontend `EntraClientId`, `EntraScope` |
+| `https://<entra-tenant-id>.ciamlogin.com/<entra-tenant-id>/v2.0` | Entra external tenant | AppHost parameter `EntraAuthority`; frontend `VITE_ENTRA_AUTHORITY` |
+| `<entra-spa-client-id>`, API scope | SPA app registration (Phase A) | Frontend `VITE_ENTRA_CLIENT_ID`, `VITE_ENTRA_SCOPE` |
 | `<stripe-test-secret-key>` | Stripe Dashboard, test mode | AppHost parameter `StripeApiKey` (secret, stored in Key Vault) |
-| `<stripe-test-publishable-key>` | Stripe Dashboard, test mode | Frontend `StripePublishableKey` |
+| `<stripe-test-publishable-key>` | Stripe Dashboard, test mode | Frontend `VITE_STRIPE_PUBLISHABLE_KEY` |
 | `<stripe-webhook-secret>` | Stripe webhook endpoint (Phase C) | Key Vault secret `Stripe--EndpointSecret` |
 
 ## Phase A: Azure and Entra setup
@@ -127,15 +127,9 @@ Expect the API revision to be **unhealthy after this first pass**. `StripeOption
 
 ## Phase D: frontend deploy
 
-From `frontend/`, using the frontend AppHost ([payments runbook, step 5](runbooks/payments-queues-workers.md#5-front-end-deploy-stripepublishablekey) and [containers runbook, step 9](runbooks/containers-and-aspire.md#9-front-end-with-aspire)):
+The Aspire frontend host and `frontend/azure.yaml` were removed in LRN-283, so there is no `azd up` for the frontend. Deployment stays on hold; when it is done, either build the image from `frontend/GameStore.Frontend/Dockerfile` (nginx runtime, Docker build arguments `VITE_BACKEND_API_URL`, `VITE_IDENTITY_PROVIDER`, `VITE_ENTRA_CLIENT_ID`, `VITE_ENTRA_AUTHORITY`, `VITE_ENTRA_SCOPE`, `VITE_STRIPE_PUBLISHABLE_KEY`) and run it as a Container App, or host the built SPA on Azure Static Web Apps using `staticwebapp.config.json` ([first runbook](runbooks/azure-for-dotnet-developers.md)).
 
-```bash
-cd frontend
-azd env new <azd-env-name-frontend>
-azd up      # BackendUrl, EntraClientId, EntraAuthority, EntraScope, StripePublishableKey
-```
-
-`BackendUrl` is `https://<container-app-fqdn>`. The publishable key is baked into the bundle through the Docker build argument `VITE_STRIPE_PUBLISHABLE_KEY`; it is a public value. Note the printed `<frontend-container-app-fqdn>`.
+`VITE_BACKEND_API_URL` is `https://<container-app-fqdn>`. The publishable key is a public value baked into the bundle. Note the resulting `<frontend-container-app-fqdn>`.
 
 ## Phase E: finalize and verify
 
@@ -162,8 +156,7 @@ azd up      # BackendUrl, EntraClientId, EntraAuthority, EntraScope, StripePubli
 ## Teardown
 
 ```bash
-cd frontend && azd down      # use --purge to also purge soft-deleted resources such as Key Vault
-cd ../backend && azd down
+cd backend && azd down      # use --purge to also purge soft-deleted resources such as Key Vault
 ```
 
 > **Irreversible.** `azd down` deletes every resource in the environment, and `--purge` also permanently purges soft-deleted resources such as Key Vault, so they cannot be recovered. Run it only against the environment you intend to remove, and confirm the azd environment name first (`azd env list` marks the default one; `azd env select <name>` changes it).

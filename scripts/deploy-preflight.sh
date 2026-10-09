@@ -18,7 +18,6 @@ FULL=0
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 APPHOST="$ROOT/backend/src/GameStore.AppHost"
-FRONTEND_APPHOST="$ROOT/frontend/GameStore.Frontend.AppHost"
 
 PASS=0
 WARN=0
@@ -138,19 +137,6 @@ if have dotnet && [ -d "$APPHOST" ]; then
     warn "Parameters:StripeApiKey not in AppHost user-secrets (azd will prompt for it on first provision)"
   fi
 fi
-if have dotnet && [ -d "$FRONTEND_APPHOST" ]; then
-  pk_line="$(dotnet user-secrets list --project "$FRONTEND_APPHOST" 2>/dev/null | grep '^Parameters:StripePublishableKey' | head -1)"
-  if [ -n "$pk_line" ]; then
-    value="${pk_line#*= }"
-    case "$value" in
-      pk_test_*) pass "Parameters:StripePublishableKey is set and is a TEST key (pk_test_...)" ;;
-      pk_live_*) fail "Parameters:StripePublishableKey is a LIVE key: test mode only" ;;
-      *)         warn "Parameters:StripePublishableKey is set but does not start with pk_test_" ;;
-    esac
-  else
-    warn "Parameters:StripePublishableKey not in frontend AppHost user-secrets (azd will prompt for it)"
-  fi
-fi
 
 section "Repository"
 if git -C "$ROOT" diff --quiet && git -C "$ROOT" diff --cached --quiet; then
@@ -169,7 +155,7 @@ if git -C "$ROOT" ls-files --error-unmatch backend/src/GameStore.AppHost/bicep/f
 else
   fail "backend/src/GameStore.AppHost/bicep/frontdoor.bicep is missing or has a different case"
 fi
-if grep -q "\[ENTRA\|\[STRIPE\|\[BACKEND API URL" "$APPHOST/appsettings.json" "$FRONTEND_APPHOST/appsettings.json" 2>/dev/null; then
+if grep -q "\[ENTRA\|\[STRIPE\|\[BACKEND API URL" "$APPHOST/appsettings.json" 2>/dev/null; then
   warn "appsettings.json still has [... HERE] placeholders: provide real values when azd prompts (do not commit them)"
 fi
 
