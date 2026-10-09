@@ -416,7 +416,9 @@ flowchart LR
     end
 
     subgraph integration["Job: Backend integration tests"]
-        i1["dotnet restore and build"] --> i2["GameStore.IntegrationTests<br/>Testcontainers on ubuntu-latest"]
+        i1["dotnet restore and build"] --> i0["docker login<br/>only if the Docker Hub secrets exist"]
+        i0 --> i2["GameStore.IntegrationTests<br/>Testcontainers on ubuntu-latest"]
+        i2 --> i3["docker logout<br/>always, after a login"]
     end
 
     subgraph frontend["Job: Front end lint and build"]
@@ -427,6 +429,18 @@ flowchart LR
         c1["commitlint<br/>.commitlintrc.json"]
     end
 ```
+
+### Docker Hub login in the integration tests job
+
+Testcontainers pulls `postgres` and `testcontainers/ryuk` from Docker Hub (the Azurite, Service Bus emulator and SQL Server images come from `mcr.microsoft.com`). Anonymous pulls from the shared GitHub runner IP addresses hit the [Docker Hub rate limit](glossary.md#continuous-integration-and-commits) and fail the job with `toomanyrequests`. So the job runs `docker login` before the tests when the repository secrets `DOCKERHUB_USERNAME` and `DOCKERHUB_TOKEN` exist. `docker login` writes `~/.docker/config.json`, which Testcontainers reads for its pulls; a final `docker logout` (run even when the tests fail) removes the credential again.
+
+- The token reaches the login step through `env` and `--password-stdin`, never on the command line or in the log.
+- Without the secrets the login and logout steps are skipped and the job pulls anonymously, as before. That is always the case for pull requests from forks and from Dependabot, which GitHub runs without repository secrets, so those runs can still hit the rate limit; re-run the job later if they do. (Dependabot runs read Dependabot secrets instead; adding the same two names under Settings > Secrets and variables > Dependabot would let them log in too.) A workflow that calls `ci.yml` through `workflow_call` must pass `secrets: inherit` for the login to happen.
+- The owner creates the secrets once: on Docker Hub, Account settings > Personal access tokens > Generate new token with the read-only **Public Repo Read-only** access scope; then on GitHub, the repository's Settings > Secrets and variables > Actions > New repository secret, once for `DOCKERHUB_USERNAME` (the Docker Hub user name) and once for `DOCKERHUB_TOKEN` (the token).
+
+### Dependabot
+
+[.github/dependabot.yml](../.github/dependabot.yml) checks GitHub Actions (`/`), the npm packages (`/frontend`) and the NuGet packages (`/backend`) every week and opens pull requests against `devel`. Minor and patch updates are grouped into one pull request per ecosystem, majors come one by one, and each ecosystem has at most 5 open pull requests. Commit messages are `ci: ...` for actions and `chore: ...` for packages, without a scope, so they pass the commit message job. Dependabot pull requests go through the same CI and review as any other.
 
 ## 10. Testing strategy
 
