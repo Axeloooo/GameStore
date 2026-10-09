@@ -5,6 +5,7 @@ import { useBasket } from '../../context/BasketContext';
 import OrdersClient from '../../clients/OrdersClient';
 import { OrderDto } from '../../models/OrdersModels';
 import SimpleNavMenu from '../../components/SimpleNavMenu';
+import StatusAlert from '../../components/StatusAlert';
 
 const OrderCreated: React.FC = () => {
     const { orderId } = useParams<{ orderId: string }>();
@@ -53,16 +54,14 @@ const OrderCreated: React.FC = () => {
         <div>
             <SimpleNavMenu />
             <div className="container">
-                <title>Order Created!</title>
+                <title>Order created</title>
 
-                <h3 className="mt-3">Order Successfully Created</h3>
+                <h3 className="mt-3">Your order was created</h3>
 
                 {loading ? (
                     <p><em>Loading...</em></p>
                 ) : error ? (
-                    <div className="alert alert-danger">
-                        <strong>Error:</strong> {error}
-                    </div>
+                    <StatusAlert variant="danger">{error}</StatusAlert>
                 ) : order ? (
                     <>
                         <p>Your order number is: <strong>{formatOrderNumber(order.orderNumber)}</strong></p>
@@ -70,7 +69,7 @@ const OrderCreated: React.FC = () => {
                         <Link to={`/order-details/${order.id}`}>View Order Details</Link>
 
                         <h4 className="mt-4">Game Codes</h4>
-                        <p>Your game codes will be available on the order details page soon.</p>
+                        <p>Your game codes will appear on the order details page shortly.</p>
                     </>
                 ) : null}
             </div>

@@ -3,6 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import { useAuth } from 'react-oidc-context';
 import OrdersClient from '../../clients/OrdersClient';
 import { OrderDto } from '../../models/OrdersModels';
+import StatusAlert from '../../components/StatusAlert';
 
 const OrderDetails: React.FC = () => {
     const { orderId } = useParams<{ orderId: string }>();
@@ -61,9 +62,7 @@ const OrderDetails: React.FC = () => {
             <div>
                 <title>Order Details</title>
                 <h3 className="mt-4 mb-4">Order Details</h3>
-                <div className="alert alert-danger">
-                    <strong>Error:</strong> {error}
-                </div>
+                <StatusAlert variant="danger">{error}</StatusAlert>
             </div>
         );
     }
@@ -73,9 +72,7 @@ const OrderDetails: React.FC = () => {
             <div>
                 <title>Order Details</title>
                 <h3 className="mt-4 mb-4">Order Details</h3>
-                <div className="alert alert-warning">
-                    Order not found.
-                </div>
+                <StatusAlert variant="warning">Order not found.</StatusAlert>
             </div>
         );
     }
@@ -130,7 +127,7 @@ const OrderDetails: React.FC = () => {
                                             </p>
                                         ))
                                     ) : (
-                                        <p className="mb-1">Game codes will be available soon.</p>
+                                        <p className="mb-1">Your game codes will appear here shortly.</p>
                                     )}
                                 </div>
                             </div>

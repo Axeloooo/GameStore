@@ -9,6 +9,7 @@ import {
     useCheckout
 } from '@stripe/react-stripe-js/checkout';
 import SimpleNavMenu from '../components/SimpleNavMenu';
+import StatusAlert from '../components/StatusAlert';
 
 // Load Stripe outside of component render
 const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || '');
@@ -21,7 +22,7 @@ const CheckoutForm: React.FC = () => {
     const checkoutState = useCheckout();
 
     if (checkoutState.type === 'error') {
-        return <div className="alert alert-danger">Error: {checkoutState.error.message}</div>;
+        return <StatusAlert variant="danger">{checkoutState.error.message}</StatusAlert>;
     }
 
     if (checkoutState.type === 'loading') {
@@ -61,9 +62,9 @@ const CheckoutForm: React.FC = () => {
             </button>
 
             {message && (
-                <div className="alert alert-danger mt-3" role="alert">
+                <StatusAlert variant="danger" className="mt-3">
                     {message}
-                </div>
+                </StatusAlert>
             )}
         </form>
     );
@@ -108,7 +109,7 @@ const Checkout: React.FC = () => {
     };
 
     if (!user) {
-        return <div>Please log in to continue</div>;
+        return <div>Please log in to continue to checkout.</div>;
     }
 
     return (
@@ -157,9 +158,9 @@ const Checkout: React.FC = () => {
                     </div>
                 ) : error ? (
                     <div className="mt-4">
-                        <div className="alert alert-danger" role="alert">
-                            Failed to initialize checkout. Please try again.
-                        </div>
+                        <StatusAlert variant="danger">
+                            We could not start checkout. Nothing was charged. Please try again.
+                        </StatusAlert>
                     </div>
                 ) : clientSecret && checkoutSession ? (
                     <CheckoutProvider

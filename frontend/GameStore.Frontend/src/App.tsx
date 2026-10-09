@@ -9,6 +9,9 @@ function App() {
       <div className="container">
         <Outlet />
       </div>
+      <footer className="container border-top mt-5 py-4 text-body-secondary small">
+        Lootlark is a demo store built for learning. Payments run in test mode and no real money moves.
+      </footer>
     </div>
   );
 }

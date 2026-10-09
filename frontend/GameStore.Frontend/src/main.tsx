@@ -1,6 +1,9 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import '@fontsource-variable/baloo-2';
+import '@fontsource-variable/nunito-sans';
+import './styles/lootlark-tokens.css';
 import './index.css';
 import App from './App';
 import Home from './pages/Home';
@@ -17,6 +20,7 @@ import Checkout from './pages/Checkout';
 import OrderCreated from './pages/orders/OrderCreated';
 import OrderDetails from './pages/orders/OrderDetails';
 import Orders from './pages/orders/Orders';
+import NotFound from './pages/NotFound';
 import { BasketProvider } from './context/BasketContext';
 
 createRoot(document.getElementById('root')!).render(
@@ -53,6 +57,7 @@ createRoot(document.getElementById('root')!).render(
                                 </PrivateRoute>} />
                             <Route path="game/:id" element={<Game />} />
                             <Route path="/accessDenied" element={<AccessDenied />} />
+                            <Route path="*" element={<NotFound />} />
                         </Route>
                         <Route path="checkout" element={
                             <PrivateRoute>

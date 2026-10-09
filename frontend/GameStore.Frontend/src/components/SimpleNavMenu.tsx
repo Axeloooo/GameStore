@@ -1,11 +1,11 @@
 import React from 'react';
-import { NavLink } from 'react-router-dom';
+import BrandLogo from './BrandLogo';
 
 const SimpleNavMenu: React.FC = () => {
     return (
-        <nav className="navbar navbar-expand-lg bg-body-tertiary" data-bs-theme="dark">
+        <nav className="navbar navbar-expand-lg bg-body-tertiary">
             <div className="container">
-                <NavLink className="navbar-brand mb-0 h1" to="/">Game Store</NavLink>
+                <BrandLogo />
             </div>
         </nav>
     );

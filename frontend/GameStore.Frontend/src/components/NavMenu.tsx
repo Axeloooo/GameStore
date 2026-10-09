@@ -1,6 +1,7 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
 import { useAuth } from 'react-oidc-context';
+import BrandLogo from './BrandLogo';
 import LoginDisplay from './LoginDisplay';
 import CartDisplay from './CartDisplay';
 import { hasRole } from '../utils/authUtils';
@@ -11,9 +12,9 @@ const NavMenu: React.FC = () => {
     const isAdmin = hasRole(auth.user, "Admin");
 
     return (
-        <nav className="navbar navbar-expand-lg bg-body-tertiary" data-bs-theme="dark">
+        <nav className="navbar navbar-expand-lg bg-body-tertiary">
             <div className="container">
-                <NavLink className="navbar-brand mb-0 h1" to="/">Game Store</NavLink>
+                <BrandLogo />
 
                 <button className="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent"
                     aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">

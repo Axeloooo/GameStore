@@ -3,6 +3,7 @@ import { Link, useSearchParams } from 'react-router-dom';
 import GamesClient from '../../clients/GamesClient';
 import { GameSummary } from '../../models/GameSummary';
 import Pagination from '../../components/Pagination';
+import StatusAlert from '../../components/StatusAlert';
 import { PaginationInfo } from '../../models/PaginationInfo';
 import DeleteGameModal from '../../components/DeleteGameModal';
 import { useAuth } from 'react-oidc-context';
@@ -98,9 +99,7 @@ const Catalog: React.FC = () => {
     if (loadingErrorList.length > 0) {
         return <div>
             {loadingErrorList.map((error, index) => (
-                <div key={index} className="mt-3 text-danger">
-                    <em>{error}</em>
-                </div>
+                <StatusAlert key={index} variant="danger" className="mt-3">{error}</StatusAlert>
             ))}
         </div>
     }
@@ -137,9 +136,7 @@ const Catalog: React.FC = () => {
             {errorList.length > 0 && (
                 <div className="modal-body mt-3">
                     {errorList.map((error, index) => (
-                        <div key={index} className="alert alert-danger">
-                            {error}
-                        </div>
+                        <StatusAlert key={index} variant="danger">{error}</StatusAlert>
                     ))}
                 </div>
             )}
