@@ -2,7 +2,7 @@
 
 Lootlark is a full-stack video game store: browse the catalog, fill a basket, pay with Stripe (test mode) and receive game codes once the order is processed. It is an ASP.NET Core API with a background worker, orchestrated locally with .NET Aspire, and a React front end.
 
-The project was built by following the [.NET Academy](https://learn.dotnetacademy.io) .NET 8 bootcamp, and the code is kept close to the course's final trees. That is why the repository and the code keep the course's `GameStore.*` names (projects, namespaces, API routes, the Keycloak realm); Lootlark is the product name. Brand decisions and assets are in [docs/branding/](docs/branding/SUMMARY.md).
+The project was built by following the [.NET Academy](https://learn.dotnetacademy.io) .NET 8 bootcamp, and the code is kept close to the course's final trees. That is why the repository and the code keep the course's `GameStore.*` names (projects, namespaces, API routes, the Keycloak realm); Lootlark is the product name. Brand decisions and assets are in [docs/branding/](docs/branding/README.md).
 
 Lootlark runs locally only. Nothing in this repository provisions or deploys cloud resources.
 
@@ -155,7 +155,7 @@ The index of all documents is [docs/README.md](docs/README.md):
 - [Local development](docs/local-development.md): running, configuring and troubleshooting the app on your machine.
 - [Architecture](docs/architecture.md): system context, local topology, flows, data model, security, CI and tests, with diagrams.
 - [Glossary](docs/glossary.md): what Aspire, the outbox, Testcontainers, commitlint and the other tools and ideas are.
-- [Branding](docs/branding/SUMMARY.md): the Lootlark name, brand direction and design tokens.
+- [Branding](docs/branding/README.md): the Lootlark name, brand direction, logo files and design tokens.
 
 ## Git workflow
 
