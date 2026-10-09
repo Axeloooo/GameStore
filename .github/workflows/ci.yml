@@ -82,8 +82,38 @@ jobs:
       - name: Build
         run: dotnet build backend/Backend.sln --no-restore
 
+      # Testcontainers pulls Docker Hub images (postgres, testcontainers/ryuk);
+      # anonymous pulls from shared runner IPs hit the Docker Hub rate limit.
+      # The secrets context is not allowed in a step "if", so this step only
+      # reports whether the secret exists. Fork and Dependabot pull requests
+      # get no secrets: the login is then skipped and pulls stay anonymous.
+      - name: Check for Docker Hub credentials
+        id: dockerhub
+        env:
+          DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
+        run: |
+          if [ -n "$DOCKERHUB_TOKEN" ]; then
+            echo "available=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "available=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::DOCKERHUB_TOKEN is not set; pulling Docker Hub images anonymously."
+          fi
+
+      # docker login writes ~/.docker/config.json, which Testcontainers reads
+      # for its image pulls.
+      - name: Log in to Docker Hub
+        if: steps.dockerhub.outputs.available == 'true'
+        env:
+          DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+          DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
+        run: printf '%s' "$DOCKERHUB_TOKEN" | docker login --username "$DOCKERHUB_USERNAME" --password-stdin
+
       - name: Integration tests
         run: dotnet test backend/tests/GameStore.IntegrationTests --no-build
+
+      - name: Log out of Docker Hub
+        if: always() && steps.dockerhub.outputs.available == 'true'
+        run: docker logout
 
   frontend:
     name: Front end lint and build
@@ -130,7 +160,7 @@ jobs:
           node-version: 22
 
       - name: Install commitlint
-        run: npm install --no-save --no-audit --no-fund --prefix "$RUNNER_TEMP/commitlint" "@commitlint/cli@$COMMITLINT_VERSION"
+        run: npm install --ignore-scripts --no-save --no-audit --no-fund --prefix "$RUNNER_TEMP/commitlint" "@commitlint/cli@$COMMITLINT_VERSION"
 
       - name: Lint the pull request commits
         env:
