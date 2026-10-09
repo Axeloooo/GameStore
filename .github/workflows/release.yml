@@ -1,0 +1,71 @@
+name: Release
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  # One release at a time; a queued release waits instead of cancelling a running one.
+  group: release
+  cancel-in-progress: false
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  ci:
+    name: CI
+    uses: ./.github/workflows/ci.yml
+    # ci.yml reads the optional DOCKERHUB_USERNAME and DOCKERHUB_TOKEN secrets
+    # for its best-effort Docker Hub login; a called workflow only sees them
+    # when they are passed on.
+    secrets: inherit
+
+  release:
+    name: GitHub release
+    needs: ci
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      # Push the version tag and create the GitHub release; nothing else.
+      contents: write
+    env:
+      # Pinned so a release does not change with a new upstream version.
+      # semantic-release 25 needs Node ^22.14.0 or >= 24.10.0. Keep the preset
+      # on 9.x: preset 10 needs conventional-changelog-writer 9, but the release
+      # notes generator bundled with semantic-release 25 uses writer 8.
+      SEMANTIC_RELEASE_VERSION: 25.0.9
+      CONVENTIONALCOMMITS_PRESET_VERSION: 9.3.1
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # semantic-release reads every commit and tag since the last release.
+          fetch-depth: 0
+          persist-credentials: false
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      # Installed outside the checkout, so the repository needs no package.json.
+      # The commit analyzer, release notes generator and GitHub plugins ship
+      # with semantic-release; the preset is installed next to them, where
+      # they look for it first.
+      - name: Install semantic-release
+        run: |
+          npm install --ignore-scripts --no-save --no-audit --no-fund --prefix "$RUNNER_TEMP/release" \
+            "semantic-release@$SEMANTIC_RELEASE_VERSION" \
+            "conventional-changelog-conventionalcommits@$CONVENTIONALCOMMITS_PRESET_VERSION"
+
+      # Reads .releaserc.json. With no new feat, fix, perf, revert or breaking
+      # commit since the last tag it stops without a release.
+      - name: Release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          "$RUNNER_TEMP/release/node_modules/.bin/semantic-release"
