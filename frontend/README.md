@@ -1,32 +1,27 @@
 # Lootlark React Front-End (GameStore)
 
-This README provides instructions to configure and run the Lootlark front end (the GameStore React app) with either Keycloak or Entra ID as your identity provider.
+This README explains how to configure and run the Lootlark front end (the GameStore React app) locally with either Keycloak (the default) or Entra ID as the identity provider. The whole local setup, including the backend, is described in [docs/local-development.md](../docs/local-development.md).
 
 ## 1. Install Node.js
 Download and install Node.js from the official website: https://nodejs.org/en/download
 
-The recommended LTS version for this project is **v22.x** or later.
+This project uses **v22.x**, pinned in the repository's [`.nvmrc`](../.nvmrc) (`nvm use` picks it up).
 
-## 2. Configure the Identity Provider
-You can configure the application to use either Keycloak or Entra ID.
+## 2. Start the back end
+The front end needs the GameStore API and Keycloak. From the repository root, start them with the Aspire AppHost:
 
-### Option A: Keycloak Configuration
-1. **Create a new client in Keycloak**:
-   * Navigate to your Keycloak admin console
-   * Create a new client with the following settings:
-     * **Client ID**: gamestore-frontend-react
-     * **Client Type**: SPA (Single Page Application)
-     * **Valid Redirect URIs**: http://localhost:5173/authentication/callback
-     * **Client authentication**: Off
-     * **Authentication flow**: Standard flow (enable), Direct access grants (disable), Implicit flow (disable)
+```bash
+dotnet run --project backend/src/GameStore.AppHost --launch-profile http
+```
 
-2. **Configure client scopes**:
-   * Add the scope **gamestore_api.all** to the client configuration (this scope should be defined in your API)
+The API listens on http://localhost:5082. In Development it accepts requests from any origin, so no CORS change is needed.
 
-3. **Note your realm URL**:
-   * This will be needed for the environment configuration (typically something like http://localhost:8080/realms/gamestore)
+## 3. Configure the Identity Provider
 
-### Option B: Entra ID Configuration
+### Option A: Keycloak (default)
+The AppHost imports the `gamestore` realm from `backend/localinfra/gamestore-realm.json`. It already contains the `gamestore-frontend-react` client (public, standard flow, redirect URI http://localhost:5173/authentication/callback) and the `gamestore_api.all` scope. You only need to create a user; see [Create a Keycloak user](../docs/local-development.md#create-a-keycloak-user).
+
+### Option B: Entra ID
 1. **Register an application in the Microsoft Entra admin center**:
    * Navigate to Microsoft Entra ID > App registrations > New registration
    * Enter a name for your application (e.g., "Game Store React Frontend")
@@ -35,7 +30,7 @@ You can configure the application to use either Keycloak or Entra ID.
    * Register the application
 
 2. **Configure API permissions**:
-   * Go to "API permissions" 
+   * Go to "API permissions"
    * Add permissions for your back-end API (e.g., "gamestore_api.all" scope)
    * Grant admin consent for these permissions if you have admin rights
 
@@ -43,81 +38,57 @@ You can configure the application to use either Keycloak or Entra ID.
    * Client ID will be displayed on the overview page
    * Authority URL will be in the format: https://[tenant-name].ciamlogin.com/[tenant-id]/v2.0
 
-## 3. Configure the Game Store back-end API
-Update your API to allow CORS requests from the React front-end:
-
-1. Open **Program.cs** in your back-end project
-2. Add the following CORS configuration:
-
-```csharp
-// Add CORS services
-builder.Services.AddCors(options =>
-{
-    options.AddDefaultPolicy(
-        policy =>
-        {
-            var allowedOrigin = "http://localhost:5173";
-            policy.WithOrigins(allowedOrigin)
-                  .WithHeaders(HeaderNames.Authorization, HeaderNames.ContentType)
-                  .AllowAnyMethod();
-        });
-});
-
-var app = builder.Build();
-
-// Make sure to add CORS middleware BEFORE UseAuthorization
-app.UseCors();
-app.UseAuthorization();
-```
+The back end must be configured for the same tenant; see [Using Microsoft Entra ID instead of Keycloak](../docs/local-development.md#using-microsoft-entra-id-instead-of-keycloak).
 
 ## 4. Configure the React front-end
-Create or update the **.env** file at the root of this project with the following settings:
+Copy the example settings to `.env.local` (git-ignored) in this folder:
 
-```
-VITE_BACKEND_API_URL=http://localhost:5082
-
-# Identity Provider Selection (keycloak or entra)
-VITE_IDENTITY_PROVIDER=keycloak  # Change to "entra" if using Entra ID
-
-# Keycloak Configuration 
-VITE_KEYCLOAK_AUTHORITY=http://localhost:8080/realms/gamestore
-VITE_KEYCLOAK_CLIENT_ID=gamestore-frontend-react
-VITE_KEYCLOAK_SCOPE=openid gamestore_api.all
-
-# Entra ID Configuration
-VITE_ENTRA_AUTHORITY=https://your-tenant.ciamlogin.com/your-tenant-id/v2.0
-VITE_ENTRA_CLIENT_ID=your-client-id
-VITE_ENTRA_SCOPE=api://your-api-id/gamestore_api.all openid profile email offline_access
+```bash
+cp .env.example .env.local
 ```
 
-Replace the placeholder values with your actual configuration details.
+[`.env.example`](.env.example) lists every setting with local defaults for Keycloak:
+
+* `VITE_BACKEND_API_URL`: the API, http://localhost:5082
+* `VITE_IDENTITY_PROVIDER`: `keycloak` or `entra`
+* `VITE_KEYCLOAK_CLIENT_ID`, `VITE_KEYCLOAK_AUTHORITY`, `VITE_KEYCLOAK_SCOPE`: the imported realm
+* `VITE_ENTRA_CLIENT_ID`, `VITE_ENTRA_AUTHORITY`, `VITE_ENTRA_SCOPE`: only for Entra
+* `VITE_STRIPE_PUBLISHABLE_KEY`: your Stripe test publishable key (`pk_test_...`); set this one
 
 VITE_ values are baked into the browser bundle: never put a secret in them (only public client ids, authority URLs, the API URL and the Stripe publishable key pk_test_...).
 
 ## 5. Install the dependencies
-Open a terminal at the root directory of the project and run:
+Open a terminal in this folder (`frontend/`) and run:
 
 ```bash
-npm install
+npm ci
 ```
 
 ## 6. Run the React front-end
-Ensure your Game Store back-end API and identity provider (Keycloak or Entra ID) are running, then start the application:
+Ensure the back end and the identity provider are running, then start the application:
 
 ```bash
 npm run dev
 ```
 
-This will start the React front-end on http://localhost:5173.
+This will start the React front-end on http://localhost:5173 (override the port with the `VITE_PORT` environment variable, but keep 5173 so the Keycloak redirect URI and the checkout return URL keep working).
+
+Other scripts:
+
+```bash
+npm run lint      # ESLint
+npm run build     # type check and production build into dist/
+npm run preview   # serve the production build locally
+```
 
 ## 7. Using the application
 - Browse the game catalog without logging in
 - Log in using your identity provider credentials to:
   - Add games to your cart
-  - Make purchases
-  - Edit or add games (if you have admin privileges)
+  - Make purchases (Stripe test card 4242 4242 4242 4242, any future expiry, any CVC)
+  - Edit or add games (if you have the `Admin` role)
 
 ## Troubleshooting
-- If authentication fails, verify your .env configuration matches your identity provider settings
-- Check browser console for any CORS-related errors
-- Ensure your backend API is properly configured to validate tokens from your identity provider
+- If authentication fails, verify your `.env.local` configuration matches your identity provider settings
+- Check the browser console for errors
+- Ensure the back end is running and configured to validate tokens from your identity provider
