@@ -8,6 +8,8 @@ GameStore: an ASP.NET Core API + worker (`backend/`) orchestrated locally by .NE
 
 The project is never deployed. Nothing in the repository provisions cloud resources and there is no deployment scaffolding. If that ever changes, a deployment happens only when the owner merges `devel` into `main`, which agents never do.
 
+Never run `azd` or `az` provisioning or deployment commands unless the owner explicitly asks.
+
 ## Documentation upkeep
 
 Documentation is part of the change, not a follow-up. The index is [docs/README.md](docs/README.md); list every new document there.
@@ -51,7 +53,7 @@ cd frontend && npm ci && npm run dev                  # also: npm run lint, npm 
   2. `backend/src/GameStore.Api/Shared/Stripe/StripeEventFactory.cs`: `ConstructEvent(..., throwOnApiVersionMismatch: false)`, because Stripe test accounts forward events in their own default API version.
   3. `backend/src/GameStore.AppHost/appsettings.json`: `CheckoutReturnUrl` is `http://localhost:5173/order-created`.
   4. `backend/src/GameStore.Api/GameStore.Api.csproj` exposes internals to `GameStore.IntegrationTests` and `GameStore.Api.UnitTests`.
-  5. The AppHost is local-only: the course's Azure publish code (Container Apps, Front Door, Key Vault, Application Insights, the `AllowedOrigins` parameter) and its Azure hosting packages were removed. Do not bring back publish code or deployment files (`azure.yaml`, `.azure/`, pipelines, Bicep) from a course tree.
+  5. The AppHost is local-only: the course's Azure publish code (Container Apps, Front Door, Key Vault, Application Insights, the `AllowedOrigins` parameter) and its publish-only packages (`Aspire.Hosting.Azure.AppContainers`, `.ApplicationInsights`, `.KeyVault`) were removed. The `Aspire.Hosting.Azure.ServiceBus`, `.Storage` and `.PostgreSQL` packages stay because they run the local emulator and containers (`RunAsEmulator`, `RunAsContainer`). Do not bring back publish code or deployment files (`azure.yaml`, `.azure/`, pipelines, Bicep) from a course tree.
 - The unit test project (`backend/tests/GameStore.Api.UnitTests`) is original work, not a course tree: xUnit 2.4.2, FluentAssertions 6.12.0 (the course's versions), NSubstitute, Moq, EF Core InMemory. Keep tests deterministic and Docker-free; Docker-dependent tests belong in `GameStore.IntegrationTests`.
 
 ## Local-only files
