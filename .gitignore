@@ -63,7 +63,9 @@ docs/superpowers/
 # Stripe CLI webhook secret written by the AppHost (course 3)
 .stripe/
 .azure/
-.env.local
+.env
+.env.*
+!.env.example
 # Front-end build artifacts (course frontend tree ships no .gitignore)
 node_modules/
 dist/

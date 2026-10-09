@@ -3,7 +3,7 @@
 #
 # It only inspects this machine and the repository: tool versions, Azure CLI login state,
 # resource provider registration, user-secret names and key prefixes. It never creates or
-# changes anything, and it never prints subscription/tenant IDs, keys or secret values.
+# changes anything, and it never prints subscription names or IDs, tenant IDs, keys or secret values.
 #
 # Usage:
 #   scripts/deploy-preflight.sh          # quick checks
@@ -87,7 +87,7 @@ LOGGED_IN=0
 if have az; then
   if az account show >/dev/null 2>&1; then
     LOGGED_IN=1
-    pass "az is signed in (subscription: $(az account show --query name -o tsv 2>/dev/null))"
+    pass "az is signed in"
   else
     fail "az is not signed in: run 'az login --tenant <tenant-id>' then 'az account set --subscription <subscription-id>'"
   fi
@@ -163,7 +163,8 @@ if git -C "$ROOT" check-ignore -q backend/.azure/config.json 2>/dev/null; then
 else
   fail "backend/.azure/ is NOT git-ignored: azd would store environment values in a tracked folder"
 fi
-if [ -f "$ROOT/backend/src/GameStore.AppHost/bicep/frontdoor.bicep" ]; then
+# git ls-files compares names case-sensitively; [ -f ] does not on macOS
+if git -C "$ROOT" ls-files --error-unmatch backend/src/GameStore.AppHost/bicep/frontdoor.bicep >/dev/null 2>&1; then
   pass "bicep file name matches the AppHost reference (frontdoor.bicep)"
 else
   fail "backend/src/GameStore.AppHost/bicep/frontdoor.bicep is missing or has a different case"

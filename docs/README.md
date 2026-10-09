@@ -35,7 +35,7 @@ Cloud procedures from the courses that were intentionally not executed. Commands
 
 ## Keeping the documentation current
 
-- Change a flow, endpoint, the data model, authorization, a topology or the pipeline: update [architecture.md](architecture.md) (diagrams are Mermaid; make sure they still render).
+- Change a flow, endpoint, the data model, authorization, a topology or the pipeline: update [architecture.md](architecture.md) (diagrams are Mermaid; make sure they still render; there are 15 today: 13 in `architecture.md`, 1 in `deployment.md` and 1 in the root `README.md`).
 - Introduce a new tool, service or concept: add a row to [glossary.md](glossary.md) with what it is and where it is used.
 - Change how to run, test or deploy: update the [README](../README.md) and [deployment.md](deployment.md).
 - Add or change a cloud procedure: edit or add a runbook, using placeholders only. Never commit real IDs, keys or secrets.

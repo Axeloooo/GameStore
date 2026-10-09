@@ -66,7 +66,7 @@ Install and sign in (the pre-flight script reports each of these):
 | An Azure subscription | Where you can create resources and app registrations. |
 | A Stripe account in **test mode** | Secret key (`sk_test_...`), publishable key (`pk_test_...`). Never use live keys. |
 
-Run the pre-flight check; it is read-only and never prints IDs or secret values:
+Run the pre-flight check; it is read-only and prints no subscription names, IDs or secret values (only tool versions, sign-in state, provider registration state and secret key prefixes such as `sk_test_`):
 
 ```bash
 scripts/deploy-preflight.sh          # tools, logins, providers, secrets, repository state
@@ -163,6 +163,8 @@ azd up      # BackendUrl, EntraClientId, EntraAuthority, EntraScope, StripePubli
 cd frontend && azd down      # use --purge to also purge soft-deleted resources such as Key Vault
 cd ../backend && azd down
 ```
+
+> **Irreversible.** `azd down` deletes every resource in the environment, and `--purge` also permanently purges soft-deleted resources such as Key Vault, so they cannot be recovered. Run it only against the environment you intend to remove, and confirm the azd environment name first (`azd env list` marks the default one; `azd env select <name>` changes it).
 
 The Entra tenant, app registrations and Stripe webhook endpoint were created by hand and must be removed by hand.
 
