@@ -2,6 +2,8 @@
 
 Status: **prepared, not executed.** Nothing in this repository has been deployed, and no cloud resource has been created. This is the ordered checklist for doing it with the Azure Developer CLI (`azd`). It ties together the five [runbooks](runbooks/), which hold the detailed, parameterised commands. New to `azd`, Aspire or Key Vault? See the [glossary](glossary.md). Replace every `<placeholder>` with your own value and never commit real values.
 
+Policy: deployment is not part of normal work. If it ever happens, the only trigger is the owner merging `devel` into `main`; agents never merge to `main` and never run `azd up`, `provision`, `deploy` or `down`.
+
 Cost warning: the deployment creates billable resources (see [What gets created](#what-gets-created)). Use a subscription you control, review the current Azure pricing for your region and plan to run `azd down` when you are done.
 
 ## Contents
@@ -154,7 +156,7 @@ azd up      # BackendUrl, EntraClientId, EntraAuthority, EntraScope, StripePubli
 
 ## Optional: CI/CD and monitoring
 
-- **Azure DevOps pipeline** (`backend/.azdo/pipelines/azure-dev.yml`): adapted to this monorepo (solution in `backend/`, trigger on `devel` for changes under `backend/`, `azd` run from `backend/`). The project, service connection, variable and parallel-jobs setup are in the [CI/CD runbook](runbooks/azure-devops-cicd.md).
+- **Azure DevOps pipeline** (`backend/.azdo/pipelines/azure-dev.yml`): adapted to this monorepo (solution in `backend/`, trigger on `main` only for changes under `backend/`, `pr: none`, Deploy job gated on `refs/heads/main`, `azd` run from `backend/`). Deployment policy: the only trigger is the owner merging `devel` into `main`; merges to `devel` and pull requests never deploy. The project, service connection, variable and parallel-jobs setup are in the [CI/CD runbook](runbooks/azure-devops-cicd.md).
 - **Application Insights**: `azd` provisions it and injects `APPLICATIONINSIGHTS_CONNECTION_STRING`; investigation steps and load tests are in the [troubleshooting runbook](runbooks/troubleshooting-azure.md).
 
 ## Teardown

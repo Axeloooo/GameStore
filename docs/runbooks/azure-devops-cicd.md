@@ -1,5 +1,7 @@
 # Runbook: Azure DevOps CI/CD (deferred cloud chapters)
 
+Policy (owner, 2026-10-09): deployment is not part of normal work. If it ever happens, the only trigger is the owner merging `devel` into `main`. Merges to `devel` and pull requests never deploy. Agents never merge to `main` and never run `azd` or register/run the pipeline.
+
 Order: Local validation, repo-layout fix (already applied), then cloud steps 0-10. Bash/zsh. Replace every `<placeholder>`; never commit real values.
 Pipeline: `backend/.azdo/pipelines/azure-dev.yml` (jobs Build -> ParallelTesting x2 -> Deploy). azd project: `backend/azure.yaml` (service `app` -> `src/GameStore.AppHost`).
 Prereqs: `az` (>= 2.50) with the `azure-devops` extension, `azd`, .NET 8 SDK, Docker, an Azure subscription where you can create app registrations and assign roles (Owner or Contributor + User Access Administrator, because azd/Aspire creates role assignments), the earlier runbooks' Entra values, a Stripe TEST key.
@@ -28,19 +30,21 @@ dotnet $DLL --filter-method "<name1> <name2> ..."
 Notes: the script sets `targetTestsFilter` with `##vso[task.setvariable]`, consumed by the step `Run tests` as `$(targetTestsFilter)`. Agents get tests round-robin (agent 1: 1,3,5..; agent 2: 2,4,6..). The script is committed with LF endings (was CRLF in the course zip; a CRLF `#!/bin/bash\r` breaks on ubuntu agents). Keep it LF: `sed -i '' 's/\r$//' backend/tests/scripts/create_slicing_filter_condition.sh` (macOS; GNU: drop the `''`) and mark `*.sh text eol=lf` in `.gitattributes` if the repo gains one.
 
 ## Repo-layout fix (the .NET solution lives in `backend/`)
-Status: Option A is applied in `backend/.azdo/pipelines/azure-dev.yml`. The explanation below is kept for reference.
+Status: the Option A layout edits (paths, `projects`, `workingDirectory`) are applied in `backend/.azdo/pipelines/azure-dev.yml`. The trigger is `main` by owner policy (see above), not `devel`. The explanation below is kept for reference.
 
 The course pipeline assumed the solution, `tests/`, `azure.yaml` are at the repo root and `.azdo/` at `<repo>/.azdo`. Here they are under `backend/`. Without changes: `DotNetCoreCLI@2 build`'s default `projects` glob would pick up every csproj under `backend/` individually (rather than the solution), and the `publish:` paths and `azd` still assume the repo-root layout, so set `projects: 'backend/Backend.sln'` explicitly; both `publish:` paths do not exist at the root; `azd` finds no `azure.yaml`.
 
-Option A (applied): keep the monorepo and edit the pipeline. The diff the pipeline file now carries (the trigger uses `devel`):
+Option A (applied): keep the monorepo and edit the pipeline. The diff the pipeline file now carries (the trigger stays on `main`, with a path filter, `pr: none` and a Deploy condition):
 ```diff
 -trigger:
 -  - main
 +trigger:
 +  branches:
-+    include: [devel]
++    include: [main]
 +  paths:
 +    include: [backend/*]
++
++pr: none
 @@ Build
        - task: DotNetCoreCLI@2
          displayName: Build
@@ -53,6 +57,10 @@ Option A (applied): keep the monorepo and edit the pipeline. The diff the pipeli
 -      - publish: $(System.DefaultWorkingDirectory)/tests/scripts
 +      - publish: $(System.DefaultWorkingDirectory)/backend/tests/scripts
          artifact: TestScripts
+@@ Deploy job
+   - job: Deploy
+     dependsOn: ParallelTesting
++    condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
 @@ Deploy (both AzureCLI@2 tasks, provision and deploy)
          inputs:
            azureSubscription: azconnection
@@ -66,7 +74,7 @@ Option A (applied): keep the monorepo and edit the pipeline. The diff the pipeli
 - `workingDirectory: backend` (AzureCLI@2 input) is the pipeline equivalent of `cd backend`; alternatively put `cd backend` first in each `inlineScript`.
 - `ParallelTesting` needs no change: it uses `checkout: none` and downloads the artifacts to `$(Pipeline.Workspace)/TestBinaries|TestScripts`.
 - The Build job's `Run unit tests` step (`DotNetCoreCLI@2 test`) also needs the prefix: `projects: 'backend/tests/GameStore.Api.UnitTests/GameStore.Api.UnitTests.csproj'`.
-- The course `trigger: - main` branch filter did not match this repo's default branch `devel`; the applied file triggers on `devel`, so the repository the pipeline reads must have a `devel` branch.
+- The trigger is `main` (as in the course) on purpose: this repo's default branch is `devel`, where all work lands, and only the owner's `devel` -> `main` merge may deploy. The repository the pipeline reads must have a `main` branch.
 - Path to the YAML when creating the pipeline becomes `backend/.azdo/pipelines/azure-dev.yml` (step 6).
 
 Option B: import `backend/` as the root of a dedicated repo (e.g. `git subtree split -P backend -b backend-only`, push that branch as `main` of `<repo-name>`). Then the original course pipeline works unchanged (the edited file in this repo would need its `backend/` prefixes and `paths` filter reverted) and the YAML path is `.azdo/pipelines/azure-dev.yml`. Loses history linkage with the monorepo.
@@ -95,7 +103,7 @@ Azure Repos (push the monorepo):
 ```bash
 az repos create --name <repo-name>
 git remote add azdo https://<organization>@dev.azure.com/<organization>/<project>/_git/<repo-name>
-git push azdo devel:devel
+git push azdo main:main
 ```
 or import: `az repos import create --git-source-url https://github.com/<github-owner>/<github-repo>.git --repository <repo-name>` (private source: add `--requires-authorization --user-name <user> --password <pat>`).
 GitHub-hosted code instead: Project settings > Service connections > New > GitHub (OAuth or the Azure Pipelines GitHub App), then use `--repository <github-owner>/<github-repo> --repository-type github --service-connection <github-service-connection>` in step 6.
@@ -160,20 +168,23 @@ Important: secret variables are NOT exposed to scripts automatically; the YAML m
 ## 6. Create the pipeline
 ```bash
 az pipelines create --name <pipeline-name> --repository <repo-name> --repository-type tfsgit \
-  --branch devel --yml-path backend/.azdo/pipelines/azure-dev.yml --skip-first-run true
+  --branch main --yml-path backend/.azdo/pipelines/azure-dev.yml --skip-first-run true
 ```
 Why: registers the YAML without queuing a run before variables exist. (`--yml-path` is `.azdo/pipelines/azure-dev.yml` under Option B.) Authorize `azconnection` for the pipeline on first run (Permit prompt) if not granted to all pipelines.
 
 ## 7. Triggers, environments, approvals
-- Trigger: pushes to `devel` that touch `backend/*` (no PR trigger, no schedules).
-- The YAML uses plain jobs, no `environment:` or `deployment:` jobs, so there are no environment approvals. To add a gate: Pipelines > Environments > New `<environment-name>`, Approvals and checks > Approvals, and change `Deploy` to a `deployment` job with `environment: <environment-name>`; or require approval on the `azconnection` service connection (Approvals and checks) without touching the YAML.
+- Trigger: pushes to `main` that touch `backend/*` (no schedules). Per owner policy this means the owner merging `devel` into `main`; nothing else deploys.
+- `pr: none` disables pull request validation runs. On Azure Repos there is no PR trigger from YAML anyway (branch policies drive PR builds), so `pr: none` matters on GitHub-backed pipelines, where without it a PR could start a run.
+- The `Deploy` job has `condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))`, so even a manual run of another branch (`az pipelines run --branch <other-branch>`) builds and tests but never deploys.
+- Owner step, recommended before the first real run: add an approval on the `azconnection` service connection (Project settings > Service connections > `azconnection` > Approvals and checks > Approvals, approver `<owner-user-or-group>`). Every job that uses the connection then waits for a human approval. Also leave "Grant access permission to all pipelines" unchecked (step 3).
+- Alternative gate: Pipelines > Environments > New `<environment-name>`, Approvals and checks > Approvals, and change `Deploy` to a `deployment` job with `environment: <environment-name>` (this edits the YAML; the plain jobs have no environment approvals today).
 
 ## 8. Free parallel-jobs grant
 New organizations have 0 free Microsoft-hosted parallel jobs. Request: https://aka.ms/azpipelines-parallelism-request (form: organization name `<organization>`, email, public/private project). Approval takes a few business days. Alternative: buy 1 Microsoft-hosted parallel job under Organization settings > Billing / Parallel jobs. Without it the first run stays "Queued: no hosted parallelism". Note `strategy: parallel: 2` needs 2 parallel jobs to run both slices at once; with 1 they run one after another (still correct).
 
 ## 9. Run and verify
 ```bash
-az pipelines run --name <pipeline-name> --branch devel
+az pipelines run --name <pipeline-name> --branch main
 az pipelines runs list --pipeline-name <pipeline-name> --top 1 -o table
 az pipelines runs show --id <run-id> --query "{status:status,result:result}"
 ```
