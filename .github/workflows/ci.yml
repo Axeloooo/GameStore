@@ -1,0 +1,144 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [devel, main]
+  push:
+    branches: [devel, main]
+  workflow_call:
+
+permissions:
+  contents: read
+
+concurrency:
+  # The "ci-" prefix keeps this group apart from a calling workflow's own group.
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+defaults:
+  run:
+    shell: bash
+
+env:
+  DOTNET_NOLOGO: "true"
+  DOTNET_CLI_TELEMETRY_OPTOUT: "true"
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: "true"
+
+jobs:
+  backend:
+    name: Backend build and unit tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: nuget-${{ runner.os }}-${{ hashFiles('backend/**/*.csproj') }}
+          restore-keys: |
+            nuget-${{ runner.os }}-
+
+      - name: Restore
+        run: dotnet restore backend/Backend.sln
+
+      - name: Build
+        run: dotnet build backend/Backend.sln --no-restore
+
+      - name: Unit tests
+        run: dotnet test backend/tests/GameStore.Api.UnitTests --no-build
+
+  integration:
+    # Runs in parallel with the backend job: it is the longest job (image pulls),
+    # so waiting for the backend job first would only lengthen the run.
+    name: Backend integration tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: nuget-${{ runner.os }}-${{ hashFiles('backend/**/*.csproj') }}
+          restore-keys: |
+            nuget-${{ runner.os }}-
+
+      - name: Restore
+        run: dotnet restore backend/Backend.sln
+
+      - name: Build
+        run: dotnet build backend/Backend.sln --no-restore
+
+      - name: Integration tests
+        run: dotnet test backend/tests/GameStore.IntegrationTests --no-build
+
+  frontend:
+    name: Front end lint and build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Build
+        run: npm run build
+
+  commits:
+    name: Commit messages
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      COMMITLINT_VERSION: 21.2.3
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+
+      - name: Install commitlint
+        run: npm install --no-save --no-audit --no-fund --prefix "$RUNNER_TEMP/commitlint" "@commitlint/cli@$COMMITLINT_VERSION"
+
+      - name: Lint the pull request commits
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          "$RUNNER_TEMP/commitlint/node_modules/.bin/commitlint" \
+            --config .commitlintrc.json \
+            --from "$BASE_SHA" \
+            --to "$HEAD_SHA" \
+            --verbose
