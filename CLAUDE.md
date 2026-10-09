@@ -1,64 +1,66 @@
 # CLAUDE.md
 
-Guidance for Claude Code when working in this repository. See [README.md](README.md) for setup and how to run the app, and [docs/architecture.md](docs/architecture.md) for the system design and diagrams. Keep the architecture document in sync when you change flows, endpoints, the data model, authorization or the pipeline (diagrams are Mermaid; check that they still parse).
+Guidance for Claude Code when working in this repository. See [README.md](README.md) for an overview and the quick start, [docs/local-development.md](docs/local-development.md) for running and troubleshooting locally, and [docs/architecture.md](docs/architecture.md) for the system design.
 
 ## What this repo is
 
-GameStore: an ASP.NET Core API + worker (`backend/`) orchestrated by .NET Aspire, and a React/Vite front end (`frontend/`). The code follows the .NET Academy .NET 8 bootcamp. Each course's final tree was copied in verbatim ("replace, don't port"), so the code deliberately keeps the course's naming (`GameStore.*`), structure and style. The user-facing product brand is **Lootlark** (UI copy, README title, docs; see `docs/branding/`); the repository name, `GameStore.*` namespaces, API routes and cloud/identity names do not change.
+GameStore: an ASP.NET Core API + worker (`backend/`) orchestrated locally by .NET Aspire, and a React/Vite front end (`frontend/`, run with npm). The code follows the .NET Academy .NET 8 bootcamp; each course's final tree was copied in verbatim, so the code keeps the course's naming (`GameStore.*`), structure and style. The product brand is **Lootlark** (UI copy, README title, docs; see [docs/branding/README.md](docs/branding/README.md)); the repository, `GameStore.*` namespaces, API routes and the Keycloak realm keep the GameStore name.
+
+The project is never deployed. Nothing in the repository provisions cloud resources and there is no deployment scaffolding. If that ever changes, a deployment happens only when the owner merges `devel` into `main`, which agents never do.
+
+Never run `azd` or `az` provisioning or deployment commands unless the owner explicitly asks.
 
 ## Documentation upkeep
 
-Documentation is part of the change, not a follow-up. The index is [docs/README.md](docs/README.md).
+Documentation is part of the change, not a follow-up. The index is [docs/README.md](docs/README.md); list every new document there.
 
-- New tool, service or concept (a CLI, an Azure service, a pattern): add a row to [docs/glossary.md](docs/glossary.md) saying what it is and where the project uses it. Explain it in plain words; do not assume the reader knows it.
-- Changed flow, endpoint, data model, authorization, topology or pipeline: update [docs/architecture.md](docs/architecture.md).
-- Changed how to run, test or deploy: update `README.md` and [docs/deployment.md](docs/deployment.md).
-- New or changed cloud procedure: edit or add a runbook in `docs/runbooks/` (placeholders only) and list it in [docs/README.md](docs/README.md).
-- When a user asks "what is X?" about something the project uses and the glossary lacks it, answer and then add it.
+- Changed flow, endpoint, data model, authorization, local topology or CI: update [docs/architecture.md](docs/architecture.md). Diagrams are Mermaid; check that they still parse.
+- New tool, service or concept: add a row to [docs/glossary.md](docs/glossary.md) saying in plain words what it is and where the project uses it. When a user asks "what is X?" and the glossary lacks it, answer and then add it.
+- Changed how to run or test: update [README.md](README.md) and [docs/local-development.md](docs/local-development.md).
+- Changed name, logo, palette or voice: update the brand guide [docs/branding/README.md](docs/branding/README.md).
 
 ## Commands
 
 ```bash
 dotnet build backend/Backend.sln
-dotnet test backend/tests/GameStore.Api.UnitTests     # fast, no Docker (82 tests, 1 skipped)
+dotnet test backend/tests/GameStore.Api.UnitTests     # fast, no Docker (82 tests: 81 pass, 1 skipped on purpose)
 dotnet test backend/Backend.sln                       # + 23 integration tests, needs Docker running
 dotnet run --project backend/src/GameStore.AppHost --launch-profile http   # whole backend stack
-cd frontend && npm ci && npm run dev && npm run build && npm run lint
-yamllint -d '{extends: relaxed, rules: {new-lines: disable, line-length: disable}}' backend/.azdo/pipelines/azure-dev.yml
+cd frontend && npm ci && npm run dev                  # also: npm run lint, npm run build, npm run preview
 ```
 
 ## Conventions
 
-- Branches: `feature/<name>` or `fix/<name>`; PRs target `devel` and follow `PULL_REQUEST_TEMPLATE.md` (Issue, Solution, Test cases, UI changes).
-- Commits: `feat: ...` or `fix: ...`, one sentence, imperative past tense ("Added ...").
+- Branches: `feature/<name>`, `fix/<name>`, `refactor/<name>`, `chore/<name>`, `ci/<name>` or `docs/<name>`, cut from `devel`. Releases: `release/YYYY-MM-DD` (the release date), cut from `devel`.
+- Commits follow Conventional Commits, enforced by [.commitlintrc.json](.commitlintrc.json) in the CI "Commit messages" job: type `feat`, `fix`, `perf`, `refactor`, `docs`, `test`, `build`, `ci`, `chore`, `style` or `revert`; one sentence, imperative past tense, capitalized subject, no trailing full stop, header at most 100 characters (`feat: Added X`).
+- Commits are signed through the owner's 1Password; never disable signing. If signing fails, stop and ask.
 - Never add `Co-Authored-By` trailers or "Generated with Claude Code" footers to commits or PR descriptions. The repository owner is the only author.
-- Prefer a new commit over `git commit --amend` once a branch is pushed; never force-push unless asked.
-- Merging: the owner does not merge by hand (decision of 2026-10-07). The orchestrator merges a PR into `devel` (`gh pr merge <n> --merge`, then delete the local branch) only when every required reviewer agent has returned an explicit `VERDICT: APPROVE` for the current head commit and CI is green or no checks exist. Required reviewers: security and quality for code PRs (plus the course reviewer for course PRs); quality and security for docs PRs. A changed head after approval means re-review; a missing, failing or unclear verdict means no merge. Never merge to `main`.
-- Still ask the owner first for: cloud spend or provisioning, deleting remote branches or data, merges to `main`, anything outside the repository, bot checks or CAPTCHAs, logins and signing prompts.
-- Never commit secrets or cloud identifiers: Azure subscription/tenant/resource IDs, ACR names, Container App FQDNs, connection strings, Stripe keys (`sk_`, `pk_`, `whsec_`). Committed config holds `[... HERE]` or `<placeholder>` values; real values go in .NET user-secrets, shell environment variables or git-ignored files (`.env.local`).
-- Do not provision cloud resources. Cloud steps live in `docs/runbooks/` as parameterised commands; extend a runbook instead of running the commands. The ordered Azure deployment checklist is `docs/deployment.md`; `scripts/deploy-preflight.sh` is read-only (checks tools, logins and secret key prefixes, prints no subscription names, IDs or secret values) and is safe to run. Only run `azd up`, `azd provision`, `azd deploy` or `azd down` when the repository owner explicitly asks.
-- Deployment: not part of normal work. If it ever happens it is triggered only by the owner merging `devel` into `main` (the Azure DevOps pipeline triggers on `main` only, with `pr: none` and a Deploy condition on `refs/heads/main`); agents never merge to `main` and never run azd up/provision/deploy/down.
+- Once a branch is pushed, add new commits; never amend or force-push.
+- Pull requests target `devel` and use [.github/pull_request_template.md](.github/pull_request_template.md) (Issue, Solution, Test cases, UI changes). Assign `Axeloooo` and comment `@Axeloooo this PR is ready for your review`.
+- Reviews: every required reviewer agent ends its report with two lines, `HEAD: <full sha>` then `VERDICT: APPROVE` or `VERDICT: REQUEST_CHANGES`. Required reviewers: quality and security, plus a design reviewer for UI changes.
+- Merging into `devel`: the orchestrator merges (`gh pr merge <n> --merge --match-head-commit <sha>`, then deletes the local branch) only when every required reviewer returned `VERDICT: APPROVE` for that exact head and CI is green. A changed head after approval means re-review; a missing, failing or unclear verdict means no merge.
+- Releases: agents may create `release/YYYY-MM-DD` from `devel` and open its PR to `main` (same template, assignee and comment). Only the owner merges into `main` (merge commit); agents never push to or merge into `main`.
+- Ask the owner first for: cloud spend or provisioning, deleting remote branches or data, merges to `main`, anything outside the repository, bot checks or CAPTCHAs, logins and signing prompts.
+- Never commit secrets or cloud identifiers: keys, Stripe keys (`sk_`, `pk_`, `whsec_`), connection strings, tenant, client or subscription IDs. Committed config holds `[... HERE]` or `<placeholder>` values; real values go in .NET user-secrets, environment variables or git-ignored files such as `frontend/.env.local`.
 - Stripe is test mode only. A live key (`sk_live_`) must never be used or stored.
 
 ## Editing course-derived code
 
 - Keep changes minimal and in the style of the surrounding code; do not restyle or refactor course code unless asked.
-- Many files use CRLF line endings (csproj, sln, YAML, C#). Preserve a file's existing line endings and trailing newline when editing; check `git diff --stat` for whole-file churn.
-- Deviations from the course that are intentional and must survive any future replacement of `backend/` with a course tree:
-  1. `backend/src/GameStore.AppHost/AppHost.cs`: the Stripe webhook secret path uses `Path.GetFullPath(Path.Combine(builder.AppHostDirectory, ..., ".stripe", "webhook_secret.txt"))` (the course used Windows `..\\..` separators).
+- Many files use CRLF line endings (csproj, sln, C#). Preserve a file's existing line endings and trailing newline when editing; check `git diff --stat` for whole-file churn.
+- Intentional deviations from the course that must survive any future replacement of `backend/` with a course tree:
+  1. `backend/src/GameStore.AppHost/AppHost.cs`: the Stripe webhook secret path uses `Path.GetFullPath(Path.Combine(builder.AppHostDirectory, "..", "..", ".stripe", "webhook_secret.txt"))` (the course used Windows `..\\..` separators).
   2. `backend/src/GameStore.Api/Shared/Stripe/StripeEventFactory.cs`: `ConstructEvent(..., throwOnApiVersionMismatch: false)`, because Stripe test accounts forward events in their own default API version.
   3. `backend/src/GameStore.AppHost/appsettings.json`: `CheckoutReturnUrl` is `http://localhost:5173/order-created`.
-  4. `backend/README.md` keeps the scrubbed placeholders (`<acr-name>`, `<subscription-id>`, `<container-app-fqdn>`); the course versions contain real IDs. Never copy a course `.azure/` folder.
-  5. `backend/tests/scripts/create_slicing_filter_condition.sh` uses LF line endings (the course ships CRLF, which breaks under bash).
-  6. `backend/src/GameStore.Api/GameStore.Api.csproj` exposes internals to `GameStore.IntegrationTests` and `GameStore.Api.UnitTests`.
-  7. `backend/.azdo/pipelines/azure-dev.yml` is adapted to the monorepo (trigger `main` only, filtered to `paths: backend/*`, `pr: none`, and a Deploy job condition on `refs/heads/main`; `backend/Backend.sln` and `backend/tests/...` paths, `workingDirectory: backend` on both `AzureCLI@2` azd tasks); the course file assumes the solution at the repository root and trigger `main`.
-  8. `frontend/GameStore.Frontend.AppHost`, `frontend/azure.yaml` and `frontend/React-Frontend.sln` were removed on the owner's decision (LRN-283); the frontend runs with npm (`frontend/.env.example` documents the `VITE_*` settings). Do not bring them back when replacing `frontend/` with a course tree.
+  4. `backend/src/GameStore.Api/GameStore.Api.csproj` exposes internals to `GameStore.IntegrationTests` and `GameStore.Api.UnitTests`.
+  5. The AppHost is local-only: the course's Azure publish code (Container Apps, Front Door, Key Vault, Application Insights, the `AllowedOrigins` parameter) and its publish-only packages (`Aspire.Hosting.Azure.AppContainers`, `.ApplicationInsights`, `.KeyVault`) were removed. The `Aspire.Hosting.Azure.ServiceBus`, `.Storage` and `.PostgreSQL` packages stay because they run the local emulator and containers (`RunAsEmulator`, `RunAsContainer`). Do not bring back publish code or deployment files (`azure.yaml`, `.azure/`, pipelines, Bicep) from a course tree.
 - The unit test project (`backend/tests/GameStore.Api.UnitTests`) is original work, not a course tree: xUnit 2.4.2, FluentAssertions 6.12.0 (the course's versions), NSubstitute, Moq, EF Core InMemory. Keep tests deterministic and Docker-free; Docker-dependent tests belong in `GameStore.IntegrationTests`.
 
 ## Local-only files
 
-`.claude/`, `courses/` (copyrighted course material), `docs/superpowers/` (specs and plans) and `backend/.stripe/` (Stripe webhook secret written by the AppHost) are git-ignored. They are not in a fresh clone and must not be committed.
+`.claude/` and `backend/.stripe/` (the Stripe webhook secret written by the AppHost) are git-ignored and must not be committed. Course material (`courses/`) and agent specs or plans (`docs/superpowers/`) are no longer in the repository or ignored; if recreated locally, never commit them.
 
-## Known issues (left as in the course)
+## Known issues
 
-- None open. `dotnet list backend/Backend.sln package --include-transitive --vulnerable` is clean; patched versions of former transitive findings are pinned explicitly in the csproj files (MessagePack, OpenTelemetry.Api, SSH.NET, System.Net.Http, System.Text.RegularExpressions).
+- NuGet: `dotnet list backend/Backend.sln package --include-transitive --vulnerable` is clean; patched versions of former transitive findings are pinned explicitly in the csproj files (MessagePack, OpenTelemetry.Api, SSH.NET, System.Net.Http, System.Text.RegularExpressions).
+- npm: `npm audit` in `frontend/` reports open findings, tracked for a follow-up; do not describe it as clean.
