@@ -11,7 +11,7 @@ Where to find what. Start with the [project README](../README.md) to run the app
 | Run one specific cloud procedure in detail | [runbooks/](runbooks/) |
 | Work on the code with Claude Code (commands, conventions, intentional deviations) | [../CLAUDE.md](../CLAUDE.md) |
 | See the product name, brand direction, logo and design tokens | [branding/SUMMARY.md](branding/SUMMARY.md) |
-| Open a pull request | [../PULL_REQUEST_TEMPLATE.md](../PULL_REQUEST_TEMPLATE.md) |
+| Open a pull request | [../.github/pull_request_template.md](../.github/pull_request_template.md) |
 
 ## Runbooks
 
