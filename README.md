@@ -1,40 +1,34 @@
-# Lootlark (repository: GameStore)
+# Lootlark
 
-Lootlark is the product name of this project; the repository and the code keep the course's `GameStore.*` names (projects, namespaces, API routes, the Keycloak realm and the Stripe setup are unchanged). Brand decisions, assets and the naming record are in [docs/branding/](docs/branding/SUMMARY.md).
+Lootlark is a full-stack video game store: browse the catalog, fill a basket, pay with Stripe (test mode) and receive game codes once the order is processed. It is an ASP.NET Core API with a background worker, orchestrated locally with .NET Aspire, and a React front end.
 
-Lootlark is a full-stack video game store: an ASP.NET Core API with a background worker, orchestrated locally with .NET Aspire, and a React front end. It was built by following the [.NET Academy](https://learn.dotnetacademy.io) .NET 8 bootcamp, and the course code is kept as close to the course's final trees as possible.
+The project was built by following the [.NET Academy](https://learn.dotnetacademy.io) .NET 8 bootcamp, and the code is kept close to the course's final trees. That is why the repository and the code keep the course's `GameStore.*` names (projects, namespaces, API routes, the Keycloak realm); Lootlark is the product name. Brand decisions and assets are in [docs/branding/](docs/branding/SUMMARY.md).
 
-## Documentation
-
-A map of all documents is in [docs/README.md](docs/README.md): [architecture and system design](docs/architecture.md), a [glossary of tools and concepts](docs/glossary.md) (what Aspire, `azd`, the outbox and the like are), the [Azure deployment checklist](docs/deployment.md) and the [cloud runbooks](docs/runbooks/).
+Lootlark runs locally only. Nothing in this repository provisions or deploys cloud resources.
 
 - [Features](#features)
-- [Architecture](#architecture) (full design with diagrams: [docs/architecture.md](docs/architecture.md))
-- [Repository Layout](#repository-layout)
-- [Setup](#setup)
-- [Run Locally](#run-locally)
+- [Stack](#stack)
+- [Prerequisites](#prerequisites)
+- [Run locally](#run-locally)
 - [Tests](#tests)
-- [Cloud Deployment Runbooks](#cloud-deployment-runbooks) (deployment checklist: [docs/deployment.md](docs/deployment.md))
-- [Troubleshooting](#troubleshooting)
-- [Git Workflow](#git-workflow)
-- [Branch Naming Convention](#branch-naming-convention)
-- [Commit Message Convention](#commit-message-convention)
+- [Continuous integration](#continuous-integration)
+- [Repository layout](#repository-layout)
+- [Documentation](#documentation)
+- [Git workflow](#git-workflow)
 - [Contributors](#contributors)
 - [License](#license)
 
 ## Features
 
 - Browse, search and filter games by genre; create, edit and delete games (Admin).
-- Game cover images stored in blob storage (Azurite locally, Azure Storage in the cloud).
-- Shopping basket per customer.
-- Checkout with Stripe (test mode), idempotent per operation.
-- Order processing through a transactional outbox, Azure Service Bus (emulator locally) and a background worker that assigns game codes.
-- Authentication with Keycloak locally and Microsoft Entra ID in the cloud.
-- Observability with OpenTelemetry, optionally exported to Application Insights.
+- Game cover images stored in blob storage (Azurite locally).
+- A shopping basket per customer.
+- Checkout with Stripe in test mode, idempotent per operation.
+- Order processing through a transactional outbox, a Service Bus queue (the emulator locally) and a background worker that assigns game codes.
+- Sign-in with Keycloak (Microsoft Entra ID is supported as an alternative).
+- Traces, metrics and logs with OpenTelemetry, shown in the Aspire dashboard.
 
-## Architecture
-
-The full system design, with diagrams for the system context, the local and Azure topology, the checkout and order-fulfilment flow, the data model, security, the delivery pipeline and the test strategy, is in [docs/architecture.md](docs/architecture.md). In short: a React SPA calls an ASP.NET Core API that stores data in PostgreSQL and images in blob storage, takes payments through Stripe, and hands paid orders to a worker through a transactional outbox and Azure Service Bus.
+## Stack
 
 ```mermaid
 flowchart LR
@@ -47,6 +41,14 @@ flowchart LR
     worker --> db
 ```
 
+| Part | Technology |
+| --- | --- |
+| Backend | .NET 8, ASP.NET Core minimal APIs, EF Core with PostgreSQL, Azure Service Bus client, Stripe.net |
+| Local orchestration | .NET Aspire AppHost with PostgreSQL, pgAdmin, Azurite, the Service Bus emulator, Keycloak and the Stripe CLI as containers |
+| Front end | React 18, TypeScript, Vite, Bootstrap, `oidc-client-ts`, Stripe.js |
+| Tests | xUnit, FluentAssertions, NSubstitute, Moq, EF Core InMemory (unit); xUnit v3 and Testcontainers (integration) |
+| CI | GitHub Actions |
+
 | Project | Purpose |
 | --- | --- |
 | `GameStore.Api` | Minimal API: games, genres, baskets, orders, payments, Stripe webhook. |
@@ -54,67 +56,31 @@ flowchart LR
 | `GameStore.Contracts` | Messages shared between the API and the worker. |
 | `GameStore.Worker` | Consumes Service Bus messages and assigns game codes to paid orders. |
 | `GameStore.ServiceDefaults` | Shared Aspire defaults: health checks, OpenTelemetry, resilience. |
-| `GameStore.AppHost` | Aspire host that starts everything locally (and describes it for Azure). |
+| `GameStore.AppHost` | Aspire host that starts the whole backend locally. |
 | `StripeCLI.Hosting` | Aspire hosting extension that runs the Stripe CLI as a container. |
-| `frontend` | React + Vite single-page app (runs with `npm`; the former frontend Aspire host was removed in LRN-283). |
+| `frontend` | React + Vite single-page app, run with npm. |
 
-## Repository Layout
+## Prerequisites
 
-```text
-backend/
-  Backend.sln
-  azure.yaml                     azd project for the backend AppHost
-  .azdo/pipelines/azure-dev.yml  Azure DevOps pipeline (Build, ParallelTesting, Deploy)
-  localinfra/                    Keycloak realm imported by the AppHost
-  src/                           API, Data, Contracts, Worker, ServiceDefaults, AppHost, StripeCLI.Hosting
-  tests/
-    GameStore.Api.UnitTests/     82 unit tests
-    GameStore.IntegrationTests/  23 integration tests (Testcontainers)
-    scripts/                     test slicing script used by the pipeline, load test script
-frontend/                        React app (npm, Vite, Dockerfile)
-docs/architecture.md             system design and diagrams
-docs/deployment.md               ordered Azure deployment checklist (prepared, not executed)
-scripts/deploy-preflight.sh      read-only pre-flight check before deploying
-docs/runbooks/                   cloud steps that were intentionally not executed
-```
-
-## Setup
-
-> [!IMPORTANT]
->
-> If you are using Windows or Linux, install the following programs with the package manager of your operating system. The examples use Homebrew, the package manager for macOS.
-
-Required:
-
-- [.NET SDK](https://dotnet.microsoft.com/en-us/download) 8.0 or newer. The projects target `net8.0`; the Aspire packages come from NuGet, so no `aspire` workload is needed.
-- [Docker Desktop](https://www.docker.com/products/docker-desktop/), running. The AppHost starts PostgreSQL, Azurite, the Service Bus emulator, Keycloak and the Stripe CLI as containers, and the integration tests use Testcontainers.
-- [Node.js](https://nodejs.org/) 20 or newer (the course uses 22).
+- [.NET SDK](https://dotnet.microsoft.com/en-us/download) 8.0 or newer (no Aspire workload needed).
+- [Docker Desktop](https://www.docker.com/products/docker-desktop/), running.
+- [Node.js](https://nodejs.org/) 22 (pinned in [`.nvmrc`](.nvmrc)).
 - A [Stripe](https://dashboard.stripe.com) account in **test mode**: a secret key (`sk_test_...`) and a publishable key (`pk_test_...`). Never use live keys.
 
-Optional:
+## Run locally
 
-- [yamllint](https://yamllint.readthedocs.io) to validate the pipeline YAML (`brew install yamllint`).
-- `az` and `azd` only if you follow the cloud runbooks.
+The short version is below. [docs/local-development.md](docs/local-development.md) has the details: every parameter, what each container does, creating a Keycloak user, calling the API with a token, using Entra instead of Keycloak, cleaning up and troubleshooting.
 
-### Secrets
+1. Set the two required secrets (stored in .NET user-secrets, outside the repository):
 
-Secrets live in .NET user-secrets, stored outside the repository, and are never committed. The committed `appsettings.json` files only contain placeholders.
+   ```bash
+   dotnet user-secrets set "Parameters:StripeApiKey" "sk_test_..." --project backend/src/GameStore.AppHost
+   dotnet user-secrets set "Parameters:EntraAuthority" "https://login.microsoftonline.com/common/v2.0" --project backend/src/GameStore.AppHost
+   ```
 
-```bash
-# Stripe secret key, used by the API and by the Stripe CLI containers
-dotnet user-secrets set "Parameters:StripeApiKey" "sk_test_..." --project backend/src/GameStore.AppHost
+   The second value only has to be an HTTPS URL when you use Keycloak; with the committed placeholder every API request returns 500.
 
-# The committed value is a placeholder, and the API refuses to start authentication with a
-# non-HTTPS authority (every request returns 500). Locally Keycloak is used, so an HTTPS
-# authority such as this one is enough:
-dotnet user-secrets set "Parameters:EntraAuthority" "https://login.microsoftonline.com/common/v2.0" --project backend/src/GameStore.AppHost
-```
-
-Passwords for PostgreSQL, Keycloak and the Service Bus emulator are generated by Aspire on the first run and saved to the same user-secrets store.
-
-## Run Locally
-
-1. Start the backend. The first run pulls several container images, so it takes a while.
+2. Start the backend. The first run pulls several container images.
 
    ```bash
    dotnet run --project backend/src/GameStore.AppHost --launch-profile http
@@ -127,11 +93,9 @@ Passwords for PostgreSQL, Keycloak and the Service Bus emulator are generated by
    | Keycloak admin console | http://localhost:8080 |
    | pgAdmin | http://localhost:5050 |
 
-   The API health endpoints (`/health/ready`, `/health/alive`) are restricted by host: they answer only when the request host is exactly `localhost:5082` (the local API above) or any host on port 8081 (the port the Azure Container App probes use). Other hosts and ports, such as `https://localhost:7077`, get a 404 for these two paths.
+3. Create a Keycloak user in the `gamestore` realm and give it the `Admin` role if it should manage games. The admin password is the `Parameters:keycloak-password` user secret. See [Create a Keycloak user](docs/local-development.md#create-a-keycloak-user).
 
-2. Create a Keycloak user. The realm (`gamestore`) ships the clients, the `gamestore_api.all` scope and an `Admin` role, but no users. Sign in to the admin console (the admin password is the `Parameters:keycloak-password` user secret), create a user, set a password and assign the `Admin` realm role to be able to manage games. The first-time Keycloak setup is described in [docs/runbooks/azure-for-dotnet-developers.md](docs/runbooks/azure-for-dotnet-developers.md).
-
-3. Start the front end.
+4. Start the front end:
 
    ```bash
    cd frontend
@@ -140,71 +104,65 @@ Passwords for PostgreSQL, Keycloak and the Service Bus emulator are generated by
    npm run dev
    ```
 
-   [`.env.example`](frontend/.env.example) lists every `VITE_*` setting with local defaults (API on http://localhost:5082, the Keycloak realm from the backend AppHost). The dev server uses port 5173 unless `VITE_PORT` is set; keep 5173 so the backend CORS and `CheckoutReturnUrl` settings keep working. `.env.local` is git-ignored. Open http://localhost:5173, sign in, add a game to the basket and check out with Stripe's test card `4242 4242 4242 4242` (any future expiry, any CVC). The Stripe CLI container forwards the webhook to the API, the order becomes **Completed** and the worker assigns the game code.
+5. Open http://localhost:5173, sign in, add a game to the basket and check out with Stripe's test card `4242 4242 4242 4242` (any future expiry, any CVC). The order becomes **Completed** and shows its game codes.
 
-4. Stop the AppHost with `Ctrl+C`. The Postgres, Azurite, Service Bus emulator and Keycloak containers are persistent, so they keep running and keep their data volumes. Remove them in Docker Desktop if you want a clean slate.
+Stop the AppHost with `Ctrl+C`. The database, storage, Service Bus emulator and Keycloak containers are persistent and keep their data.
 
 ## Tests
 
 ```bash
-dotnet test backend/Backend.sln                          # everything (Docker must be running)
-dotnet test backend/tests/GameStore.Api.UnitTests        # unit tests only, fast, no Docker
+dotnet test backend/tests/GameStore.Api.UnitTests   # unit tests: fast, no Docker
+dotnet test backend/Backend.sln                     # unit and integration tests: Docker must be running
 ```
 
-- 82 unit tests (xUnit, FluentAssertions, NSubstitute, Moq), one of them skipped on purpose.
-- 23 integration tests against real PostgreSQL, Azurite and the Service Bus emulator through Testcontainers. The first run pulls the container images.
-- Pipeline YAML check: `yamllint -d '{extends: relaxed, rules: {new-lines: disable, line-length: disable}}' backend/.azdo/pipelines/azure-dev.yml`
+- 82 unit tests (xUnit, FluentAssertions, NSubstitute, Moq, EF Core InMemory), one of them skipped on purpose.
+- 23 integration tests against real PostgreSQL, Azurite and the Service Bus emulator, started by Testcontainers. The first run pulls the container images.
+- Front end: `cd frontend && npm run lint && npm run build`.
 
-## Cloud Deployment Runbooks
+## Continuous integration
 
-No cloud resources are provisioned from this repository. [docs/deployment.md](docs/deployment.md) is the ordered checklist for deploying to Azure with `azd` (what gets created, the order of operations and the values to collect), and `scripts/deploy-preflight.sh` is a read-only check of your machine, logins and secrets before you start. The cloud chapters of each course are documented as runbooks with parameterised commands (use your own values for every `<placeholder>`):
+[`.github/workflows/ci.yml`](.github/workflows/ci.yml) runs on GitHub Actions for every pull request to `devel` or `main` and every push to those branches:
 
-| Runbook | Covers |
+| Job | What it checks |
 | --- | --- |
-| [azure-for-dotnet-developers.md](docs/runbooks/azure-for-dotnet-developers.md) | Entra, App Service, Storage, Front Door, Managed Identities, PostgreSQL, Key Vault, static web app. |
-| [containers-and-aspire.md](docs/runbooks/containers-and-aspire.md) | Container Registry, Container Apps, `azd up`, Bicep Front Door, front-end deployment. |
-| [payments-queues-workers.md](docs/runbooks/payments-queues-workers.md) | Stripe webhook endpoint, Service Bus, Key Vault secrets, deploys. Also the local deviations from the course. |
-| [azure-devops-cicd.md](docs/runbooks/azure-devops-cicd.md) | Azure DevOps project, service connection, pipeline, parallel jobs. |
-| [troubleshooting-azure.md](docs/runbooks/troubleshooting-azure.md) | Application Insights, load testing and diagnosing a slow endpoint. |
+| Backend build and unit tests | `dotnet build backend/Backend.sln` and the unit tests. |
+| Backend integration tests | The integration tests, with Docker on the runner. |
+| Front end lint and build | `npm ci`, `npm run lint` and `npm run build` in `frontend/`. |
+| Commit messages | Pull requests only: every commit message is checked with commitlint against [`.commitlintrc.json`](.commitlintrc.json). |
 
-## Troubleshooting
+## Repository layout
 
-- **Every API request returns 500 right after start:** `Parameters:EntraAuthority` is still the placeholder. Set it as shown in [Secrets](#secrets).
-- **The API never starts and the dashboard shows `stripeSecretGen` failed:** the Stripe key is missing or invalid. The API waits for the Stripe CLI to generate the webhook secret.
-- **PostgreSQL or Keycloak fails with `password authentication failed` after recreating containers:** a leftover data volume was initialised with another password. Remove the old `gamestore.apphost-*` containers and volumes (this deletes local development data only) and start again.
-- **Webhooks return 400 or orders stay `Pending`:** make sure the Stripe CLI container is running and the key is a test key. The API accepts Stripe events of any API version (see the deviations in the payments runbook).
-- **Integration tests report zero tests or hang:** Docker is not running or is still pulling images.
-
-## Git Workflow
-
-- The `devel` branch is the default branch.
-- The `main` branch is the production branch.
-- Every change goes through a pull request to `devel` that follows [the pull request template](.github/pull_request_template.md).
-- Pull requests are not merged by hand. Reviewer agents (security and quality; the course reviewer too for course PRs) review the PR, and the orchestrator merges it once all of them approve and CI is green. Cloud spend, deleting remote branches or data and anything touching `main` still need the owner's explicit approval.
-
-## Branch Naming Convention
-
-- Feature branches should be named as `feature/<feature-name>`.
-- Bugfix branches should be named as `fix/<bugfix-name>`.
-
-The branch name should be in the following format:
-
-```bash
-git checkout -b feature/add-chapter-for-this-topic
+```text
+.github/
+  workflows/ci.yml              GitHub Actions CI
+  pull_request_template.md      pull request template
+backend/
+  Backend.sln
+  localinfra/                   Keycloak realm imported by the AppHost
+  src/                          API, Data, Contracts, Worker, ServiceDefaults, AppHost, StripeCLI.Hosting
+  tests/
+    GameStore.Api.UnitTests/    unit tests
+    GameStore.IntegrationTests/ integration tests (Testcontainers)
+frontend/                       React app (npm, Vite)
+docs/                           architecture, local development, glossary, branding
+.commitlintrc.json              commit message rules
+.nvmrc                          Node.js version
 ```
 
-## Commit Message Convention
+## Documentation
 
-The basic structure includes:
+The index of all documents is [docs/README.md](docs/README.md):
 
-- `fix`: for bug fixes
-- `feat`: for new features
+- [Local development](docs/local-development.md): running, configuring and troubleshooting the app on your machine.
+- [Architecture](docs/architecture.md): system context, local topology, flows, data model, security, CI and tests, with diagrams.
+- [Glossary](docs/glossary.md): what Aspire, the outbox, Testcontainers, commitlint and the other tools and ideas are.
+- [Branding](docs/branding/SUMMARY.md): the Lootlark name, brand direction and design tokens.
 
-The commit message should be in the following format:
+## Git workflow
 
-```bash
-git commit -m "feat: Added chapter for this topic"
-```
+- `devel` is the default branch; every change goes through a pull request to `devel` that follows [the pull request template](.github/pull_request_template.md).
+- Branch names: `feature/<name>` or `fix/<name>` (other conventional types such as `docs/<name>` or `ci/<name>` are used too).
+- Commit messages follow [Conventional Commits](https://www.conventionalcommits.org): a type, a colon and one sentence in the imperative past tense, at most 100 characters and without a trailing full stop, for example `feat: Added the order history page`. The allowed types are listed in [`.commitlintrc.json`](.commitlintrc.json), and CI checks every pull request commit.
 
 ## Contributors
 
@@ -212,4 +170,4 @@ git commit -m "feat: Added chapter for this topic"
 
 ## License
 
-[MIT](https://opensource.org/licenses/MIT)
+[MIT](LICENSE)
