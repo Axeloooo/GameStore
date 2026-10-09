@@ -5,7 +5,7 @@ Prereqs: `az` (with `containerapp` and `application-insights` extensions), `azd`
 
 ## Wiring already in the repo
 - `GameStore.ServiceDefaults/Extensions.cs` (package `Azure.Monitor.OpenTelemetry.AspNetCore` 1.3.0): `if (!string.IsNullOrEmpty(builder.Configuration["APPLICATIONINSIGHTS_CONNECTION_STRING"])) builder.Services.AddOpenTelemetry().UseAzureMonitor();`. No setting = no export.
-- `GameStore.AppHost` (package `Aspire.Hosting.Azure.ApplicationInsights` 13.0.0): `AddAzureApplicationInsights("app-insights")` + `WithReference(insights)` for api and worker, publish mode only. It injects `APPLICATIONINSIGHTS_CONNECTION_STRING` into both.
+- `GameStore.AppHost` (package `Aspire.Hosting.Azure.ApplicationInsights` 9.5.2): `AddAzureApplicationInsights("app-insights")` + `WithReference(insights)` for api and worker, publish mode only. It injects `APPLICATIONINSIGHTS_CONNECTION_STRING` into both.
 - So with `azd up` steps 1-3 happen automatically; the manual commands below are for an app deployed without Aspire's insights resource, or to understand what azd does.
 
 ## Local

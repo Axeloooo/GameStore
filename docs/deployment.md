@@ -172,4 +172,4 @@ The runbooks are written from the repository, the course material and the Azure 
 - The Key Vault secret name `Stripe--EndpointSecret` (derived from the options class).
 - Whether `azd up` completes while the first API revision is unhealthy (missing `Stripe--EndpointSecret`), and how Aspire surfaces that failure.
 - The list of resource providers that need registering.
-- The Application Insights wiring pairs Aspire 9.5.2 packages with `Aspire.Hosting.Azure.ApplicationInsights` 13.0.0; it builds, but a version-skew problem would first show up during `azd provision`.
+- The Application Insights wiring uses `Aspire.Hosting.Azure.ApplicationInsights` 9.5.2, the same version line as the other Aspire packages; it has not yet been exercised by `azd provision`.
