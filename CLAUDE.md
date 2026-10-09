@@ -59,5 +59,4 @@ yamllint -d '{extends: relaxed, rules: {new-lines: disable, line-length: disable
 
 ## Known issues (left as in the course)
 
-- NU1902 vulnerability warnings for `OpenTelemetry.Exporter.OpenTelemetryProtocol` appear on every build.
-- `Aspire.Hosting.Azure.ApplicationInsights` 13.0.0 is mixed with other Aspire packages at 9.5.2.
+- `dotnet list backend/Backend.sln package --include-transitive --vulnerable` still reports transitive `System.Net.Http` 4.3.0 and `System.Text.RegularExpressions` 4.3.0 in the two test projects (pulled in by test dependencies); the build does not warn about them.
