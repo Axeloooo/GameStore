@@ -12,9 +12,11 @@
         <PackageReference Include="Azure.Identity" Version="1.21.0" />
         <!-- Aspire.Npgsql brings Microsoft.EntityFrameworkCore 9.0.1; keep it in line with GameStore.Api -->
         <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.20" />
+        <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="9.0.20" />
         <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="9.0.4" />
         <!-- Patched OpenTelemetry.Api (GHSA-g94r-2vxg-569j); Aspire.Azure.Npgsql brings 1.9.0 -->
         <PackageReference Include="OpenTelemetry.Api" Version="1.19.1" />
+        <PackageReference Include="OpenTelemetry.Extensions.Hosting" Version="1.19.1" />
     </ItemGroup>
 
 </Project>
