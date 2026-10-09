@@ -132,11 +132,25 @@ dotnet test backend/Backend.sln                     # unit and integration tests
 
 [`.github/dependabot.yml`](.github/dependabot.yml) has Dependabot open weekly update pull requests against `devel` for GitHub Actions, npm and NuGet packages (see [architecture](docs/architecture.md#dependabot)).
 
+## Releases
+
+A release is a version tag such as `v0.2.0` plus a [GitHub Release](https://docs.github.com/en/repositories/releasing-projects-on-github/about-releases) with generated release notes. Nothing is deployed and no package is published.
+
+1. The owner cuts `release/YYYY-MM-DD` from `devel` (agents may do this too) and opens a pull request to `main`.
+2. The owner merges it into `main` with a merge commit. Only the owner merges into `main`.
+3. The push to `main` starts [`.github/workflows/release.yml`](.github/workflows/release.yml): it runs the full CI first, then [semantic-release](https://semantic-release.gitbook.io) with the settings in [`.releaserc.json`](.releaserc.json).
+4. semantic-release reads the commits since the last version tag and works out the next [Semantic Versioning](https://semver.org) number from their Conventional Commits types: `feat` gives a minor release (0.1.0 to 0.2.0), `fix`, `perf` and `revert` a patch release (0.2.0 to 0.2.1), and a `!` after the type or a `BREAKING CHANGE:` footer a major release. Other types (`docs`, `refactor`, `ci`, `chore`, `test`, `build`, `style`) do not cause a release on their own. It then pushes the tag and creates the GitHub Release; if nothing qualifies, it stops without a release.
+
+The release notes list features, bug fixes, performance improvements, reverts, refactoring and documentation; `test`, `build`, `ci`, `chore` and `style` commits are left out. Commits whose message does not follow Conventional Commits (the early history, before commitlint) and merge commits are ignored. Because the version comes from the commit types, a commit's type must say what the change really is.
+
+The first run needs a baseline tag: the owner pushes `v0.1.0` on `main` before the first release pull request is merged, so the first release is computed from the commits after it. See [architecture](docs/architecture.md#releases) for the workflow details.
+
 ## Repository layout
 
 ```text
 .github/
   workflows/ci.yml              GitHub Actions CI
+  workflows/release.yml         release workflow (semantic-release, pushes to main only)
   dependabot.yml                Dependabot update schedule
   pull_request_template.md      pull request template
 backend/
@@ -149,6 +163,7 @@ backend/
 frontend/                       React app (npm, Vite)
 docs/                           architecture, local development, glossary, branding
 .commitlintrc.json              commit message rules
+.releaserc.json                 semantic-release settings
 ```
 
 ## Documentation

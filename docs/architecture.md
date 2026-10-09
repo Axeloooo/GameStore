@@ -402,7 +402,7 @@ Notes:
 
 ## 9. Continuous integration
 
-[.github/workflows/ci.yml](../.github/workflows/ci.yml) runs on GitHub Actions for pull requests to `devel` or `main` and pushes to those branches. The four jobs run in parallel; nothing is deployed.
+[.github/workflows/ci.yml](../.github/workflows/ci.yml) runs on GitHub Actions for pull requests to `devel` or `main` and pushes to those branches. The four jobs run in parallel; nothing is deployed. A second workflow, `release.yml`, creates version tags and GitHub Releases from `main` (see [Releases](#releases)).
 
 ```mermaid
 flowchart LR
@@ -447,6 +447,33 @@ Testcontainers needs two Docker Hub images (`postgres:15.1` and `testcontainers/
 ### Dependabot
 
 [.github/dependabot.yml](../.github/dependabot.yml) checks GitHub Actions (`/`), the npm packages (`/frontend`) and the NuGet packages (`/backend`) every week and opens pull requests against `devel`. Minor and patch updates are grouped into one pull request per ecosystem, majors come one by one, and each ecosystem has at most 5 open pull requests. Commit messages are `ci: ...` for actions and `chore: ...` for packages, without a scope, so they pass the commit message job. Dependabot pull requests go through the same CI and review as any other.
+
+### Releases
+
+[.github/workflows/release.yml](../.github/workflows/release.yml) runs on pushes to `main` only, which happen when the owner merges a `release/YYYY-MM-DD` pull request from `devel` with a merge commit. A release is a version tag and a [GitHub Release](glossary.md#continuous-integration-and-commits) with notes; nothing is deployed and nothing is published to a package registry.
+
+```mermaid
+flowchart LR
+    devel(["devel"]) --> rel["release/YYYY-MM-DD<br/>pull request to main"]
+    rel -->|"owner merges<br/>merge commit"| push(["Push to main"])
+    push --> ci["Job: CI<br/>calls ci.yml"]
+    ci -->|"all CI jobs pass"| sr
+
+    subgraph sr["Job: GitHub release (contents: write)"]
+        s1["checkout, full history"] --> s2["npm install pinned<br/>semantic-release and preset<br/>into RUNNER_TEMP"]
+        s2 --> s3["Analyze commits since the last v* tag<br/>.releaserc.json"]
+        s3 -->|"feat, fix, perf, revert<br/>or breaking change"| s4["Push tag vX.Y.Z<br/>create GitHub Release with notes"]
+        s3 -->|"nothing qualifies"| s5["No release"]
+    end
+```
+
+- **CI first.** The `ci` job calls [ci.yml](../.github/workflows/ci.yml) as a reusable workflow (`workflow_call`) with `secrets: inherit`, so the optional Docker Hub login works there too. Its commit message job only runs on pull requests and is skipped. `ci.yml` also runs on its own for the same push, so `main` gets two CI runs; the release job waits only for the one inside the release workflow.
+- **Concurrency.** The `release` group never cancels a running release; a second push to `main` waits until the first finishes.
+- **Permissions.** The workflow defaults to `contents: read`. Only the release job gets `contents: write`, which is what pushing the tag (and semantic-release's git note for it) and creating the GitHub Release need. It does not comment on issues or pull requests and adds no labels (`successCommentCondition`, `failCommentCondition` and `releasedLabels` are `false`), so it needs no `issues` or `pull-requests` permission.
+- **No package.json, no third-party actions.** The job installs pinned `semantic-release` and `conventional-changelog-conventionalcommits` into `$RUNNER_TEMP/release` with `npm install --ignore-scripts` and runs the binary from there. The versions are `env` values at the top of the job. semantic-release finds its bundled plugins and the preset installed next to them, then reads `.releaserc.json` from the checkout.
+- **Authentication.** The checkout keeps no credentials (`persist-credentials: false`). semantic-release receives `GITHUB_TOKEN` in the step environment and builds an authenticated `https://x-access-token:...@github.com/...` remote URL from it for its own `git push`; the GitHub plugin uses the same token for the release API.
+- **Versioning.** The commit analyzer uses the Conventional Commits preset: `feat` is a minor release, `fix`, `perf` and `revert` a patch release, `!` after the type or a `BREAKING CHANGE:` footer a major release, every other type none. Merge commits and commits that do not follow Conventional Commits (the history before commitlint) are ignored. Tags look like `v1.2.3` (`tagFormat`), and the first release is computed from a `v0.1.0` baseline tag the owner pushes on `main`.
+- **Release notes.** Sections for features, bug fixes, performance improvements, reverts, code refactoring and documentation; `test`, `build`, `ci`, `chore` and `style` commits are hidden. Nothing is written back to the repository (no changelog file, no version commit), so `main` only changes through the owner's merges.
 
 ## 10. Testing strategy
 
