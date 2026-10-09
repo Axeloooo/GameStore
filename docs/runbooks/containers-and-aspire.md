@@ -126,7 +126,7 @@ File: `backend/src/GameStore.AppHost/bicep/frontdoor.bicep`. Why: CDN in front o
 - Test: `curl -I https://<frontdoor-hostname>/game-images/<image-file>` (public blob access required; first hit can be slow while the route propagates).
 
 ## 9. Front end with Aspire
-> Removed in LRN-283: `frontend/GameStore.Frontend.AppHost`, `frontend/azure.yaml` and `React-Frontend.sln` no longer exist; the frontend now runs with npm (`cd frontend/GameStore.Frontend && cp .env.example .env.local && npm ci && npm run dev`, see the root README). The text below is the original course lesson, kept for reference. The Parameters table maps to the `VITE_*` variables in `.env.example`.
+> Removed in LRN-283: `frontend/GameStore.Frontend.AppHost`, `frontend/azure.yaml` and `React-Frontend.sln` no longer exist; the frontend now runs with npm (`cd frontend/GameStore.Frontend && cp .env.example .env.local && npm ci && npm run dev`, see the root README). The text below is the original course lesson, kept for reference. The Parameters table maps to the `VITE_*` variables in `.env.example`; there the Keycloak client id is `gamestore-frontend-react` (the table's `gamestore-frontend` is the old course value).
 
 Project: `frontend/GameStore.Frontend.AppHost`; image built from `frontend/GameStore.Frontend/Dockerfile` (node 22 build, nginx runtime) via `PublishAsDockerFile`.
 Parameters (`appsettings.Development.json` `Parameters`, or `azd` prompts when publishing) and where they land:

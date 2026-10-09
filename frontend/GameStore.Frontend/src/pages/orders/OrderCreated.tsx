@@ -61,7 +61,7 @@ const OrderCreated: React.FC = () => {
                 {loading ? (
                     <p><em>Loading...</em></p>
                 ) : error ? (
-                    <StatusAlert variant="danger">{error}</StatusAlert>
+                    <StatusAlert variant="danger">We could not load your order just now. Please try again in a moment.</StatusAlert>
                 ) : order ? (
                     <>
                         <p>Your order number is: <strong>{formatOrderNumber(order.orderNumber)}</strong></p>

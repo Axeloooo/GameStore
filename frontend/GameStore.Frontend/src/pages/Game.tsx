@@ -93,7 +93,7 @@ const Game: React.FC = () => {
                                 <a href="/cart" className="btn btn-primary">View in your cart</a>
                             ) : (
                                 <form onSubmit={handleSubmit}>
-                                    <button type="submit" className="btn btn-primary" aria-label={`Add ${game.name} to cart`}>Grab it</button>
+                                    <button type="submit" className="btn btn-primary">Grab it<span className="visually-hidden">: {game.name}</span></button>
                                 </form>
                             )}
                             <p className="text-body-secondary mt-3">

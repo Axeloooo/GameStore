@@ -130,6 +130,7 @@ curl https://<container-app-fqdn>/payments/stripe-webhook -X POST -i    # expect
 Run steps 1 and 3 now, then update `AllowedOrigins`/`CheckoutReturnUrl` once the front end exists and `azd deploy`. Never commit `backend/.azure/`.
 
 ## 5. Front-end deploy (StripePublishableKey)
+> Removed in LRN-283: `frontend/azure.yaml` and the front-end AppHost no longer exist, so the `cd frontend; azd env new; azd up` flow below and the frontend `azd down` in step 7 are historical. The `VITE_*` values (including the Stripe publishable key) are now passed as Docker build args or set in `.env.local`; see `frontend/GameStore.Frontend/.env.example`.
 Parameter `StripePublishableKey` (`<stripe-test-publishable-key>`, pk_test_) -> Docker build arg `VITE_STRIPE_PUBLISHABLE_KEY` (baked into the bundle; publishable, not secret). Other parameters: `BackendUrl` = `https://<container-app-fqdn>`, `EntraClientId` = `<entra-spa-client-id>`, `EntraAuthority`, `EntraScope`; `IdentityProvider` = `Entra` in config.
 ```bash
 cd frontend

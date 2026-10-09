@@ -23,7 +23,7 @@ const CartDisplay: React.FC = () => {
         <div className="position-relative">
             <a aria-label={`Cart, ${totalQuantity} ${totalQuantity === 1 ? 'item' : 'items'}`} href="/cart" className="d-flex align-items-center text-decoration-none text-primary">
                 <i className="bi bi-bag-fill fs-3" aria-hidden="true"></i>
-                <span className="position-absolute start-50 translate-middle text-white fw-bold fs-6" style={{ top: '60%' }}>
+                <span className="cart-count position-absolute start-50 translate-middle fw-bold fs-6" style={{ top: '60%' }}>
                     {totalQuantity}
                 </span>
             </a>
