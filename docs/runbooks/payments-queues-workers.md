@@ -39,7 +39,7 @@ curl -X POST http://localhost:5082/payments/checkout -H "Authorization: Bearer $
 stripe trigger checkout.session.completed
 ```
 Expected: order status `Completed`, `OutboxMessages` rows processed (pgAdmin http://localhost:5050), and a Worker log line in the Aspire dashboard http://localhost:15054. Note `stripe trigger` creates a generic session without your order metadata, so a real order completes only by paying a session from the front end (test card 4242 4242 4242 4242); confirm in the dashboard logs.
-5. Front end (the frontend AppHost step was removed in LRN-283; the frontend now runs with npm): in `frontend/GameStore.Frontend/.env.local` set `VITE_STRIPE_PUBLISHABLE_KEY=<stripe-test-publishable-key>` (pk_test_ only), then `npm ci && npm run dev` (app http://localhost:5173).
+5. Front end (the frontend AppHost step was removed in LRN-283; the frontend now runs with npm): in `frontend/.env.local` set `VITE_STRIPE_PUBLISHABLE_KEY=<stripe-test-publishable-key>` (pk_test_ only), then `npm ci && npm run dev` (app http://localhost:5173).
 
 Local deviations from the course
 - `backend/src/GameStore.Api/Shared/Stripe/StripeEventFactory.cs` (course 4 moved `ConstructEvent` there; `StripeWebhookEndpoint.cs` now takes `IStripeEventFactory`) calls `EventUtility.ConstructEvent(..., throwOnApiVersionMismatch: false)`. Stripe.net pins API version `2025-09-30.clover`; `stripe listen` forwards events in the account's default version (for example `2022-11-15`; `--latest` gives a newer release, which also mismatches), so without this every webhook returned 400 (`Received event with API version ..., but Stripe.net expects API version 2025-09-30.clover`) and orders stayed `Pending`. The signature is still verified.
@@ -130,7 +130,7 @@ curl https://<container-app-fqdn>/payments/stripe-webhook -X POST -i    # expect
 Run steps 1 and 3 now, then update `AllowedOrigins`/`CheckoutReturnUrl` once the front end exists and `azd deploy`. Never commit `backend/.azure/`.
 
 ## 5. Front-end deploy (StripePublishableKey)
-> Removed in LRN-283: `frontend/azure.yaml` and the front-end AppHost no longer exist, so the `cd frontend; azd env new; azd up` flow below and the frontend `azd down` in step 7 are historical. The `VITE_*` values (including the Stripe publishable key) are now passed as Docker build args or set in `.env.local`; see `frontend/GameStore.Frontend/.env.example`.
+> Removed in LRN-283: `frontend/azure.yaml` and the front-end AppHost no longer exist, so the `cd frontend; azd env new; azd up` flow below and the frontend `azd down` in step 7 are historical. The `VITE_*` values (including the Stripe publishable key) are now passed as Docker build args or set in `.env.local`; see `frontend/.env.example`.
 Parameter `StripePublishableKey` (`<stripe-test-publishable-key>`, pk_test_) -> Docker build arg `VITE_STRIPE_PUBLISHABLE_KEY` (baked into the bundle; publishable, not secret). Other parameters: `BackendUrl` = `https://<container-app-fqdn>`, `EntraClientId` = `<entra-spa-client-id>`, `EntraAuthority`, `EntraScope`; `IdentityProvider` = `Entra` in config.
 ```bash
 cd frontend

@@ -573,7 +573,7 @@ h1, h2, h3, .navbar-brand, .display-1, .display-2, .display-3 {
 
 ## Adopting a direction later (not done in this phase)
 
-1. Copy the chosen token block into `frontend/GameStore.Frontend/src/brand.css` and import it after Bootstrap in `main.tsx`.
+1. Copy the chosen token block into `frontend/src/brand.css` and import it after Bootstrap in `main.tsx`.
 2. Add the two Google Fonts with a `<link>` in `index.html` (`display=swap`, only the listed weights).
 3. Replace the text brand "Game Store" in `NavMenu.tsx` with the SVG lockup, add `mark-32.png` and an SVG favicon, and replace the hard-coded `#5f4dee` hover in `Home.module.css` with the token.
 4. Replace the "Loading..." text with skeleton cards, and add the no-cover fallback to the card `<img>` (`onError`).

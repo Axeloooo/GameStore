@@ -151,7 +151,7 @@ check_frontend_stripe_key() {
     *)         warn "frontend .env.local VITE_STRIPE_PUBLISHABLE_KEY is missing or does not start with pk_test_" ;;
   esac
 }
-check_frontend_stripe_key "$ROOT/frontend/GameStore.Frontend/.env.local"
+check_frontend_stripe_key "$ROOT/frontend/.env.local"
 
 section "Repository"
 if git -C "$ROOT" diff --quiet && git -C "$ROOT" diff --cached --quiet; then

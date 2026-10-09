@@ -28,7 +28,7 @@ flowchart LR
     admin(["Administrator"])
 
     subgraph gamestore["GameStore"]
-        spa["React SPA<br/>GameStore.Frontend"]
+        spa["React SPA<br/>frontend"]
         api["ASP.NET Core API<br/>GameStore.Api"]
         worker["Background worker<br/>GameStore.Worker"]
     end
@@ -150,7 +150,7 @@ flowchart TB
     capi <--> stripe
 ```
 
-The React app is built from `frontend/GameStore.Frontend/Dockerfile` into an nginx image with the Vite settings baked in as build arguments (the Aspire frontend host was removed in LRN-283; locally the app runs with `npm run dev`, and deployment is on hold). The first course also covered hosting the built SPA on Azure Static Web Apps (`staticwebapp.config.json`); that option is described in the [first runbook](runbooks/azure-for-dotnet-developers.md).
+The React app is built from `frontend/Dockerfile` into an nginx image with the Vite settings baked in as build arguments (the Aspire frontend host was removed in LRN-283; locally the app runs with `npm run dev`, and deployment is on hold). The first course also covered hosting the built SPA on Azure Static Web Apps (`staticwebapp.config.json`); that option is described in the [first runbook](runbooks/azure-for-dotnet-developers.md).
 
 Access to PostgreSQL, Storage, Service Bus and Key Vault goes through a `DefaultAzureCredential` (managed identity via `AZURE_CLIENT_ID`), so no connection secrets are stored. Application Insights is only wired in publish mode and only active when `APPLICATIONINSIGHTS_CONNECTION_STRING` is set.
 

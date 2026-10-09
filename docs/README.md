@@ -31,7 +31,7 @@ Cloud procedures from the courses that were intentionally not executed. Commands
 | --- | --- |
 | [backend/README.md](../backend/README.md) | Course notes for container commands. Real IDs are replaced by placeholders. |
 | [backend/next-steps.md](../backend/next-steps.md) | The generic `azd` guide that ships with the course tree. |
-| [frontend/GameStore.Frontend/README.md](../frontend/GameStore.Frontend/README.md) | Course steps for the React front end. |
+| [frontend/README.md](../frontend/README.md) | Course steps for the React front end. |
 | [scripts/deploy-preflight.sh](../scripts/deploy-preflight.sh) | Read-only check of tools, logins and secrets before a deployment. |
 
 ## Keeping the documentation current

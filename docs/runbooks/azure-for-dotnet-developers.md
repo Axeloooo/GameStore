@@ -1,7 +1,7 @@
 # Runbook: Azure for .NET Developers (deferred cloud chapters)
 
 Order: Local setup, then cloud steps 0-9. Bash/zsh. Replace every `<placeholder>`; never commit real values.
-Backend: `backend/src/GameStore.Api` (.NET 8, Linux App Service). Frontend: `courses/04-azure-for-dotnet-developers/React_Frontend_Start/React-Frontend-Start` (or repo `frontend/GameStore.Frontend`).
+Backend: `backend/src/GameStore.Api` (.NET 8, Linux App Service). Frontend: `courses/04-azure-for-dotnet-developers/React_Frontend_Start/React-Frontend-Start` (or repo `frontend`).
 
 ## Local setup (manual Keycloak config missing from backend/localinfra/gamestore-realm.json)
 
