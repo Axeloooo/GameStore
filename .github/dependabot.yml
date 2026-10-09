@@ -1,6 +1,14 @@
 # Dependabot version updates. Pull requests target devel, like every other PR.
 # Commit messages use a plain Conventional Commits prefix without a scope so
 # they pass the "Commit messages" CI job (.commitlintrc.json).
+#
+# Only safe updates arrive automatically: minor and patch versions, grouped
+# into one pull request per ecosystem. Major versions that need deliberate
+# work are ignored below and are upgraded by hand in their own pull request.
+#
+# cooldown makes Dependabot wait until a release is 14 days old (30 days for
+# a major version) before proposing it, which is the repository's rule of
+# only using releases that are at least two weeks old.
 version: 2
 updates:
   - package-ecosystem: github-actions
@@ -11,9 +19,13 @@ updates:
     open-pull-requests-limit: 5
     commit-message:
       prefix: ci
+    # Every action update, major ones included, arrives as a single pull request.
     groups:
-      github-actions-minor-and-patch:
-        update-types: [minor, patch]
+      actions:
+        patterns: ["*"]
+    # GitHub Actions supports only default-days (no per-semver cooldown).
+    cooldown:
+      default-days: 14
 
   - package-ecosystem: npm
     directory: /frontend
@@ -26,6 +38,42 @@ updates:
     groups:
       npm-minor-and-patch:
         update-types: [minor, patch]
+    cooldown:
+      default-days: 14
+      semver-major-days: 30
+    ignore:
+      # ESLint 10 changes the flat config and rule set; eslint, @eslint/js and
+      # eslint-plugin-react-hooks (7 adds the React Compiler rules) move together.
+      - dependency-name: "eslint"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "@eslint/js"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "eslint-plugin-react-hooks"
+        update-types: ["version-update:semver-major"]
+      # TypeScript 7 is the native (Go) compiler; tsc -b and typescript-eslint
+      # need checking before the switch.
+      - dependency-name: "typescript"
+        update-types: ["version-update:semver-major"]
+      # Stripe.js majors change the checkout API; @stripe/react-stripe-js 7
+      # requires @stripe/stripe-js 10, so both are upgraded together by hand.
+      - dependency-name: "@stripe/stripe-js"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "@stripe/react-stripe-js"
+        update-types: ["version-update:semver-major"]
+      # Vite 8 is outside the peer range of @vitejs/plugin-react 4 (npm ci fails
+      # with ERESOLVE) and plugin-react 6 requires Vite 8: one manual upgrade.
+      - dependency-name: "vite"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "@vitejs/plugin-react"
+        update-types: ["version-update:semver-major"]
+      # The React type packages follow the React major (18), and @types/node
+      # follows the Node major used in CI (22).
+      - dependency-name: "@types/react"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "@types/react-dom"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "@types/node"
+        update-types: ["version-update:semver-major"]
 
   - package-ecosystem: nuget
     directory: /backend
@@ -38,3 +86,26 @@ updates:
     groups:
       nuget-minor-and-patch:
         update-types: [minor, patch]
+    cooldown:
+      default-days: 14
+      semver-major-days: 30
+    ignore:
+      # The backend targets .NET 8 and Aspire 9.5; major versions (EF Core 10,
+      # Aspire 13, ...) need a framework upgrade, so none are proposed.
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
+      # Aspire packages stay on 9.5.x to match the Aspire 9.5.2 hosting
+      # (AppHost and azd); only patch releases are proposed.
+      - dependency-name: "Aspire.*"
+        update-types: ["version-update:semver-major", "version-update:semver-minor"]
+      # The unit test project pins the course's test tooling on purpose
+      # (CLAUDE.md), so these get no updates at all.
+      - dependency-name: "xunit"
+      - dependency-name: "xunit.runner.visualstudio"
+      - dependency-name: "FluentAssertions"
+      - dependency-name: "Moq"
+      - dependency-name: "NSubstitute"
+      # Newer Testcontainers versions change the default image tags, which must
+      # match the "Pull container images" list in .github/workflows/ci.yml.
+      # Lift this rule once that pre-pull list has been reviewed.
+      - dependency-name: "Testcontainers.*"

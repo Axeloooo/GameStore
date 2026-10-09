@@ -130,7 +130,7 @@ dotnet test backend/Backend.sln                     # unit and integration tests
 | Front end lint and build | `npm ci`, `npm run lint` and `npm run build` in `frontend/`. |
 | Commit messages | Pull requests only: every commit message is checked with commitlint against [`.commitlintrc.json`](.commitlintrc.json). |
 
-[`.github/dependabot.yml`](.github/dependabot.yml) has Dependabot open weekly update pull requests against `devel` for GitHub Actions, npm and NuGet packages (see [architecture](docs/architecture.md#dependabot)).
+[`.github/dependabot.yml`](.github/dependabot.yml) has Dependabot open weekly update pull requests against `devel` for GitHub Actions, npm and NuGet packages: all actions updates in one pull request, npm and NuGet minor and patch updates grouped per ecosystem, majors that need deliberate work (ESLint, TypeScript, Stripe.js, Vite, every NuGet major, Aspire minors) and the course-pinned test tooling and Testcontainers ignored, and a 14-day cooldown before a new release is proposed (see [architecture](docs/architecture.md#dependabot)).
 
 ## Releases
 
