@@ -51,15 +51,8 @@ UpgradeLog*.htm
 
 .DS_Store
 
-# .NET Academy course materials (copyrighted, local only)
-courses/*
-!courses/download.sh
-
 .claude/
 
-courses/
-
-docs/superpowers/
 # Stripe CLI webhook secret written by the AppHost (course 3)
 .stripe/
 .env

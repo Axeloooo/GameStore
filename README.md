@@ -64,7 +64,7 @@ flowchart LR
 
 - [.NET SDK](https://dotnet.microsoft.com/en-us/download) 8.0 or newer (no Aspire workload needed).
 - [Docker Desktop](https://www.docker.com/products/docker-desktop/), running.
-- [Node.js](https://nodejs.org/) 22 (pinned in [`.nvmrc`](.nvmrc)).
+- [Node.js](https://nodejs.org/) 22 (the version CI uses, see [`.github/workflows/ci.yml`](.github/workflows/ci.yml)).
 - A [Stripe](https://dashboard.stripe.com) account in **test mode**: a secret key (`sk_test_...`) and a publishable key (`pk_test_...`). Never use live keys.
 
 ## Run locally
@@ -146,7 +146,6 @@ backend/
 frontend/                       React app (npm, Vite)
 docs/                           architecture, local development, glossary, branding
 .commitlintrc.json              commit message rules
-.nvmrc                          Node.js version
 ```
 
 ## Documentation

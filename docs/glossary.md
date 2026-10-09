@@ -24,7 +24,7 @@ Short explanations of the tools, services and ideas used in this project, with w
 | **SDK container publishing** | `dotnet publish /t:PublishContainer` builds a container image without a Dockerfile. | `GameStore.Api.csproj` still names the image `gamestore-api` (`ContainerRepository`, from the course); the local run does not build images. |
 | **Vite** | The frontend dev server and build tool. `VITE_*` variables are baked into the bundle at build time. | `frontend`; dev server on http://localhost:5173; settings in `.env.local` (see `.env.example`). |
 | **Mermaid** | Text-based diagrams that GitHub renders in Markdown. | The diagrams in `docs/architecture.md` and the root `README.md`. |
-| **nvm and `.nvmrc`** | nvm (Node Version Manager) switches between Node.js versions; `.nvmrc` names the version a project expects. | [`.nvmrc`](../.nvmrc) pins Node.js 22; `nvm use` picks it up and CI reads it too. |
+| **nvm** | nvm (Node Version Manager) installs and switches between Node.js versions on your machine. | Optional: use it to run Node 22, the version CI uses (see [`.github/workflows/ci.yml`](../.github/workflows/ci.yml)). |
 
 ## Continuous integration and commits
 

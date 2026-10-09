@@ -21,7 +21,7 @@ How to run Lootlark (the GameStore code) on your own machine, how the local serv
 | --- | --- |
 | [.NET SDK](https://dotnet.microsoft.com/en-us/download) 8.0 or newer | The projects target `net8.0`. The Aspire packages come from NuGet, so no `aspire` workload is needed. |
 | [Docker Desktop](https://www.docker.com/products/docker-desktop/), running | The AppHost starts PostgreSQL, pgAdmin, Azurite, the Service Bus emulator, Keycloak and the Stripe CLI as containers; the integration tests use Testcontainers. |
-| [Node.js](https://nodejs.org/) 22 | The version is pinned in [`.nvmrc`](../.nvmrc) (`nvm use` picks it up). |
+| [Node.js](https://nodejs.org/) 22 | The version CI uses (see [`.github/workflows/ci.yml`](../.github/workflows/ci.yml)). |
 | A [Stripe](https://dashboard.stripe.com) account in **test mode** | A secret key (`sk_test_...`) for the backend and a publishable key (`pk_test_...`) for the front end. Never use live keys. |
 
 ## Secrets and parameters
