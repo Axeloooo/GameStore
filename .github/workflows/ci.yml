@@ -129,7 +129,9 @@ jobs:
       # starting many parallel pulls with no retry. A Docker Hub image that the
       # mirror cannot serve is pulled from Docker Hub and tagged with the
       # mirror name that Testcontainers looks for. Keep this list in sync with
-      # the images in backend/tests/GameStore.IntegrationTests.
+      # the images in backend/tests/GameStore.IntegrationTests, and recheck it
+      # on every Testcontainers.* bump (Dependabot proposes patch releases only):
+      # even a patch release can change a module's default image tag (ryuk).
       - name: Pull container images
         run: |
           pull() {
@@ -194,6 +196,69 @@ jobs:
 
       - name: Build
         run: npm run build
+
+  # Compensating control for security fixes: Dependabot alerts and security
+  # updates are repository settings, and the version-update ignore rules in
+  # .github/dependabot.yml hold some packages back. This job fails when a
+  # production npm dependency has a high or critical advisory, or when any
+  # NuGet package (top-level or transitive) has a known vulnerability.
+  audit:
+    name: Dependency audit
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: 8.0.x
+
+      - uses: actions/cache@v6
+        with:
+          path: ~/.nuget/packages
+          key: nuget-${{ runner.os }}-${{ hashFiles('backend/**/*.csproj') }}
+          restore-keys: |
+            nuget-${{ runner.os }}-
+
+      - name: Install front end packages
+        working-directory: frontend
+        run: npm ci --ignore-scripts
+
+      # Gating: production dependencies only (what ships to the browser).
+      - name: npm audit (production dependencies)
+        working-directory: frontend
+        run: npm audit --omit=dev --audit-level=high
+
+      # Informational: dev tooling (lint, build) findings are reported but do
+      # not fail the job.
+      - name: npm audit (all dependencies, informational)
+        working-directory: frontend
+        run: |
+          if ! npm audit --audit-level=high; then
+            echo "::warning::npm audit found high or critical advisories in front end dev dependencies (not gating)."
+          fi
+
+      - name: Restore
+        run: dotnet restore backend/Backend.sln
+
+      # dotnet list ... --vulnerable exits 0 even when it finds something, so
+      # the job fails on the report text instead.
+      - name: NuGet vulnerability check
+        run: |
+          report="$RUNNER_TEMP/nuget-vulnerable.txt"
+          dotnet list backend/Backend.sln package --include-transitive --vulnerable | tee "$report"
+          if grep -q "has the following vulnerable packages" "$report"; then
+            echo "::error::Vulnerable NuGet packages found (see the list above)."
+            exit 1
+          fi
 
   commits:
     name: Commit messages

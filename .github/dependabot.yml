@@ -99,13 +99,24 @@ updates:
       - dependency-name: "Aspire.*"
         update-types: ["version-update:semver-major", "version-update:semver-minor"]
       # The unit test project pins the course's test tooling on purpose
-      # (CLAUDE.md), so these get no updates at all.
+      # (CLAUDE.md): no major or minor updates. Patch releases stay allowed so
+      # fixes still arrive as version updates. (With target-branch set, GitHub
+      # does not apply these options to security updates; listing update-types
+      # keeps a name-only ignore from blocking security fixes if it is removed.)
       - dependency-name: "xunit"
+        update-types: ["version-update:semver-major", "version-update:semver-minor"]
       - dependency-name: "xunit.runner.visualstudio"
+        update-types: ["version-update:semver-major", "version-update:semver-minor"]
       - dependency-name: "FluentAssertions"
+        update-types: ["version-update:semver-major", "version-update:semver-minor"]
       - dependency-name: "Moq"
+        update-types: ["version-update:semver-major", "version-update:semver-minor"]
       - dependency-name: "NSubstitute"
+        update-types: ["version-update:semver-major", "version-update:semver-minor"]
       # Newer Testcontainers versions change the default image tags, which must
       # match the "Pull container images" list in .github/workflows/ci.yml.
+      # Only patch releases are proposed; even a patch can change a default
+      # tag, so check the pre-pull list on every Testcontainers pull request.
       # Lift this rule once that pre-pull list has been reviewed.
       - dependency-name: "Testcontainers.*"
+        update-types: ["version-update:semver-major", "version-update:semver-minor"]
