@@ -59,4 +59,4 @@ yamllint -d '{extends: relaxed, rules: {new-lines: disable, line-length: disable
 
 ## Known issues (left as in the course)
 
-- `dotnet list backend/Backend.sln package --include-transitive --vulnerable` still reports transitive `System.Net.Http` 4.3.0 and `System.Text.RegularExpressions` 4.3.0 in the two test projects (pulled in by test dependencies); the build does not warn about them.
+- Known vulnerable transitive dependencies remain (the build does not warn about them; nothing in `GameStore.Api` or `GameStore.Worker` is flagged). In `GameStore.AppHost` and `StripeCLI.Hosting`: MessagePack 2.5.192 via StreamJsonRpc from Aspire.Hosting 9.5.2 (local orchestrator and dev tooling, not deployed). In `GameStore.IntegrationTests`: SSH.NET 2024.2.0 via Testcontainers 4.8.1 (test-only, SCP unused). In `GameStore.Data`: OpenTelemetry.Api 1.9.0 via Aspire.Azure.Npgsql (class library; Api and Worker resolve 1.15.3). In both test projects: System.Net.Http and System.Text.RegularExpressions 4.3.0 (test dependencies). Run `dotnet list backend/Backend.sln package --include-transitive --vulnerable` for the current list.
