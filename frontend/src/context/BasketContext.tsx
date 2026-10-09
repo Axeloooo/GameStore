@@ -55,7 +55,7 @@ export const BasketProvider: React.FC<BasketProviderProps> = ({ children }) => {
         try {
             const fetchedBasket = await basketState.getBasketAsync();
             setBasket(fetchedBasket);
-        } catch (err) {
+        } catch {
             setError('Failed to fetch basket');
         } finally {
             setLoading(false);

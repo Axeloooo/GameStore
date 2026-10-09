@@ -38,12 +38,12 @@ const Home: React.FC = () => {
 
   const handleSearch = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    const params: any = {};
+    const params: Record<string, string> = {};
     if (nameSearch) {
       params.name = nameSearch;
-      params.page = 1;
+      params.page = '1';
     } else {
-      params.page = 1;
+      params.page = '1';
     }
     setSearchParams(params);
   };
